@@ -1,4 +1,4 @@
 from revether.plugin import Plugin
 
-def PLUGIN_ENTRY:
+def PLUGIN_ENTRY():
     return Plugin()
