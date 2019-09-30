@@ -27,10 +27,12 @@ class Plugin(ida_idaapi.plugin_t):
         if not ida_kernwin.is_idaq():
             raise RuntimeError("IDArling cannot be used in terminal mode")
 
-        self._config = self._get_default_config()
-        self._paths = self._get_plugin_paths()
+        # We need this config incase the loading of the config from the
+        # configurations file down in the init function will fail
+        # also for iniating the basic logger for this :)
+        self._config = self.get_default_config()
         _current_time = datetime.now().strftime("%d_%m_%Y_%H_%M_%S")
-        _log_file_full_path = os.path.join(self._paths['plugin_log'],
+        _log_file_full_path = os.path.join(self.get_plugin_folder()['logs'],
                                            _current_time + '.txt')
         self._logger = initiate_logger(_log_file_full_path, 'RevetherLogger', self._config['logging_level'])
 
@@ -39,14 +41,15 @@ class Plugin(ida_idaapi.plugin_t):
         return self._logger
 
     @property
-    def paths(self):
-        return self._paths
-
-    @property
     def config(self):
         return self._config
 
-    def _get_plugin_paths(self):
+    @staticmethod
+    def get_plugin_folder():
+        """
+            Returns a dict with all the relevant paths for the plugin
+            You can access them using the values root, logs or idbs
+        """
         if platform.system() == 'Windows':
             plugin_user_root_folder = 'C:\\Revether\\'
         elif platform.system() == 'Linux':
@@ -62,12 +65,23 @@ class Plugin(ida_idaapi.plugin_t):
             os.makedirs(plugin_user_root_folder + 'logs\\')
 
         return {
-            'plugin_root': plugin_user_root_folder,
-            'plugin_log': plugin_user_root_folder + 'logs\\',
-            'plugin_idbs': plugin_user_root_folder + 'idbs\\',
+            'root': plugin_user_root_folder,
+            'logs': plugin_user_root_folder + 'logs\\',
+            'idbs': plugin_user_root_folder + 'idbs\\',
         }
 
-    def _get_default_config(self):
+    @staticmethod
+    def get_config_file_path():
+        """
+            Returns the path to the config file
+        """
+        return Plugin.get_plugin_folder()['root'] + 'config.json'
+
+    @staticmethod
+    def get_default_config():
+        """
+            Returns the default config for initializations
+        """
         return {
             'logging_level': logging.INFO,
         }
@@ -80,12 +94,38 @@ class Plugin(ida_idaapi.plugin_t):
         self._logger.info(banner)
         self._logger.info('~' * len(banner))
 
+    def _generate_config_if_not_existent(self, cfg_file):
+        with open(cfg_file, 'wb') as f:
+            pretty_config = json.dumps(self.get_default_config(),
+                                       indent=4, separators=(',', ': '))
+            f.write(pretty_config)
+        self._logger.info('Created log file: {}'.format(cfg_file))
+
+    def load_config(self):
+        cfg_file = self.get_config_file_path()
+        if not os.path.isfile(cfg_file):
+            self._generate_config_if_not_existent(cfg_file)
+
+        with open(cfg_file) as f:
+            try:
+                self._config.update(json.loads(f.read()))
+            except ValueError:
+                self._logger.warning('Was not able to load the config file')
+                return
+            self._logger.setLevel(self._config['logging_level'])
+
     def init(self):
         """
             This function is called when ida loads the plugin.
             Here we should initate all the modules
         """
         # Lots of inits will be here
+        try:
+            self.load_config()
+        except Exception as e:
+            self._logger.error('Failed to initazlie the plugin')
+            self._logger.exception(e)
+            return ida_idaapi.PLUGIN_SKIP
 
         self._print_banner()
         self._logger.info('Plugin intialized successfully')
