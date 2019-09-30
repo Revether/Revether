@@ -52,7 +52,7 @@ class Plugin(ida_idaapi.plugin_t):
         """
         # TODO: Change this to appdate in default and make this configurable
         if platform.system() == 'Windows':
-            plugin_user_root_folder = os.path.join('C:', 'Revether')
+            plugin_user_root_folder = os.path.join('C:', os.sep, 'Revether')
         elif platform.system() == 'Linux':
             plugin_user_root_folder = os.path.join('~', 'Revether')
 
@@ -76,7 +76,7 @@ class Plugin(ida_idaapi.plugin_t):
         """
             Returns the path to the config file
         """
-        return Plugin.get_plugin_folder()['root'] + 'config.json'
+        return os.path.join(Plugin.get_plugin_folder()['root'], 'config.json')
 
     @staticmethod
     def get_default_config():
