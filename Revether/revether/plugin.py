@@ -50,24 +50,25 @@ class Plugin(ida_idaapi.plugin_t):
             Returns a dict with all the relevant paths for the plugin
             You can access them using the values root, logs or idbs
         """
+        # TODO: Change this to appdate in default and make this configurable
         if platform.system() == 'Windows':
-            plugin_user_root_folder = 'C:\\Revether\\'
+            plugin_user_root_folder = os.path.join('C:', 'Revether')
         elif platform.system() == 'Linux':
-            plugin_user_root_folder = '~\\.Revether\\'
+            plugin_user_root_folder = os.path.join('~', 'Revether')
 
         if not os.path.exists(plugin_user_root_folder):
             os.makedirs(plugin_user_root_folder)
 
-        if not os.path.exists(plugin_user_root_folder + 'idbs\\'):
-            os.makedirs(plugin_user_root_folder + 'idbs\\')
+        if not os.path.exists(os.path.join(plugin_user_root_folder, 'idbs')):
+            os.makedirs(os.path.join(plugin_user_root_folder, 'idbs'))
 
-        if not os.path.exists(plugin_user_root_folder + 'logs\\'):
-            os.makedirs(plugin_user_root_folder + 'logs\\')
+        if not os.path.exists(os.path.join(plugin_user_root_folder, 'logs')):
+            os.makedirs(os.path.join(plugin_user_root_folder, 'logs'))
 
         return {
             'root': plugin_user_root_folder,
-            'logs': plugin_user_root_folder + 'logs\\',
-            'idbs': plugin_user_root_folder + 'idbs\\',
+            'logs': os.path.join(plugin_user_root_folder, 'logs'),
+            'idbs': os.path.join(plugin_user_root_folder, 'idbs'),
         }
 
     @staticmethod
