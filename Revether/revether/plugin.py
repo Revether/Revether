@@ -1,6 +1,7 @@
 from .logger import initiate_logger
 from .ui.ui import Ui
 from .core.network_manager import NetworkManager
+from .core.core import Core
 
 import platform
 import logging
@@ -49,6 +50,10 @@ class Plugin(ida_idaapi.plugin_t):
     @property
     def network_manager(self):
         return self._network_manager
+
+    @property
+    def core(self):
+        return self._core
 
     @staticmethod
     def get_plugin_folder():
@@ -142,6 +147,8 @@ class Plugin(ida_idaapi.plugin_t):
             self._network_manager = NetworkManager()
             self._ui = Ui(self)
             self._ui.update_all()
+            self._core = Core(self)
+            self._core.install_hooks()
         except Exception as e:
             self._logger.error('Failed to initazlie the plugin')
             self._logger.exception(e)
