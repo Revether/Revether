@@ -1,4 +1,3 @@
-import logging
 import socket
 import select
 import threading
@@ -12,7 +11,7 @@ from ..utils.select_event import SelectableEvent
 class RevetherServer(object):
     LISTEN_BACKLOG = 5
 
-    def __init__(self, host, port):
+    def __init__(self, logger, host, port):
         self.host = host
         self.port = port
 
@@ -22,9 +21,7 @@ class RevetherServer(object):
         self.__connected_clients = []
         self.__server_thread = None
 
-        logging.basicConfig()
-        self.__logger = logging.getLogger(__name__)
-        self.__logger.setLevel(logging.INFO)
+        self.__logger = logger
 
     def start(self, block=False):
         """
@@ -37,8 +34,6 @@ class RevetherServer(object):
         self.__logger.info("Starting the server on {}:{}".format(self.host, self.port))
         self.__server_socket.bind((self.host, self.port))
         self.__server_socket.listen(RevetherServer.LISTEN_BACKLOG)
-
-        self.__logger.info("Listening...")
 
         if block:
             self.__server_loop()
@@ -111,16 +106,24 @@ class RevetherServer(object):
             if not current_client.ready:
                 try:
                     current_client.handshake()
-                    self.__logger.info("Handshake complete, idb_name: {}, idb_hash: {}".format(
+                    self.__logger.debug("Handshake complete, idb_name: {}, idb_hash: {}".format(
                         current_client.idb_name, current_client.idb_hash.encode('hex')))
                 except Exception as e:  # Catch only the right exceptions?
-                    self.__logger.error("Error while handshake with client: {}".format(e))
+                    self.__logger.error("Error while handshake with client: {}\n"
+                                        "Closing connection".format(e))
                     self.__logger.exception(e)
                     self.__close_connection_with_client(current_client)
 
                 continue
 
-            event = current_client.get_event()
+            try:
+                event = current_client.get_event()
+            except EOFError:
+                self.__logger.error("Error while trying to get event from client"
+                                    "Closing connection")
+                self.__close_connection_with_client(current_client)
+                continue
+
             self.__logger.debug("Got event: {}".format(event))
 
             # Save it to DB?
