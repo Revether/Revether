@@ -1,6 +1,10 @@
 import socket
+import os
+
+import idc
 
 from ..utils.net import set_socket_keepalive
+from ..net.packets import create_connection_packet
 
 class NetworkManager(object):
     def __init__(self):
@@ -17,6 +21,10 @@ class NetworkManager(object):
 
         self._socket.connect((ip, port))
         set_socket_keepalive(self._socket)
+
+        pkt = create_connection_packet(os.path.split(idc.get_idb_path())[-1], 123)
+        self.send(pkt)
+
         self._connected = True
 
     def disconnect(self):

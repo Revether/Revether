@@ -103,20 +103,19 @@ class StatusWidget(QWidget):
                     self._plugin.config['server_address'],
                     self._plugin.config['server_port']
                 )
-                self._plugin.network_manager.send('first_packet')
                 self.update()
 
             connect_action.triggered.connect(connect)
             menu.addAction(connect_action)
         else:
             disconnect_action = QAction('Disconnect', menu)
-            def connect():
+            def disconnect():
                 self._plugin.logger.debug('Disconnect handler called')
                 self._plugin.network_manager.send('disconnecting')
                 self._plugin.network_manager.disconnect()
                 self.update()
 
-            disconnect_action.triggered.connect(connect)
+            disconnect_action.triggered.connect(disconnect)
             menu.addAction(disconnect_action)
 
 
