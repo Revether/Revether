@@ -1,5 +1,5 @@
 from PyQt5.QtCore import Qt, QTimer, QSize, QPoint, QRect
-from PyQt5.QtWidgets import QWidget, QLabel
+from PyQt5.QtWidgets import QWidget, QLabel, QMenu, QAction
 from PyQt5.QtGui import QPainter, QPixmap, QRegion
 
 class StatusWidget(QWidget):
@@ -33,6 +33,29 @@ class StatusWidget(QWidget):
 
     def _handle_right_click(self, point):
         self._plugin.logger.debug('Right clicked on the status widget')
+        self._plugin.logger.debug('The point clicked is: {}'.format(point))
+
+        menu = QMenu(self)
+
+        # Connect to configured server
+        connect_action = QAction('Connect', menu)
+        def connect():
+            self._plugin.logger.debug('Connect handler called')
+
+        connect_action.triggered.connect(connect)
+        menu.addAction(connect_action)
+
+        menu.addSeparator()
+
+        # Settings button
+        settings_action = QAction('Settings', menu)
+        def settings():
+            self._plugin.logger.debug('Settings handler called')
+
+        settings_action.triggered.connect(settings)
+        menu.addAction(settings_action)
+
+        menu.exec_(self.mapToGlobal(point))
 
     def upadte(self):
         try:
