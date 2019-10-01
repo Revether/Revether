@@ -1,3 +1,4 @@
+import logging
 import socket
 import select
 import threading
@@ -21,6 +22,10 @@ class RevetherServer(object):
         self.__connected_clients = []
         self.__server_thread = None
 
+        logging.basicConfig()
+        self.__logger = logging.getLogger(__name__)
+        self.__logger.setLevel(logging.INFO)
+
     def start(self, block=False):
         """
         Start the listening and processing of the server
@@ -29,8 +34,11 @@ class RevetherServer(object):
             block (bool): Should this function block. Default is False.
                           When False, new thread will be created.
         """
+        self.__logger.info("Starting the server on {}:{}".format(self.host, self.port))
         self.__server_socket.bind((self.host, self.port))
         self.__server_socket.listen(RevetherServer.LISTEN_BACKLOG)
+
+        self.__logger.info("Listening...")
 
         if block:
             self.__server_loop()
@@ -86,8 +94,9 @@ class RevetherServer(object):
             Note:
                 Function is blocking, should be called after selected the server socket.
         """
-        client_socket, _ = self.__server_socket.accept()
+        client_socket, client_addr = self.__server_socket.accept()
         new_client = client.Client(client_socket)
+        self.__logger.info("Accepted new client from {}".format(client_addr))
         self.__connected_clients.append(new_client)
 
     def __handle_ready_clients(self, ready_clients):
@@ -101,9 +110,12 @@ class RevetherServer(object):
         for current_client in ready_clients:
             if not current_client.ready:
                 try:
-                    current_client.hanshake()
-                except Exception:  # Catch only the right exceptions?
-                    # TODO: Add log about the error
+                    current_client.handshake()
+                    self.__logger.info("Handshake complete, idb_name: {}, idb_hash: {}".format(
+                        current_client.idb_name, current_client.idb_hash))
+                except Exception as e:  # Catch only the right exceptions?
+                    self.__logger.error("Error while handshake with client: {}".format(e))
+                    self.__logger.exception(e)
                     self.__close_connection_with_client(current_client)
 
                 continue
@@ -131,7 +143,7 @@ class RevetherServer(object):
         Close connection with all the clients.
         """
         for current_client in self.__connected_clients:
-            self.__close_connection_with_clients(current_client)
+            self.__close_connection_with_client(current_client)
 
     def __broadcast_events(self, events):
         """
