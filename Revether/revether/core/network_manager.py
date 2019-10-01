@@ -31,7 +31,6 @@ class NetworkManager(object):
             return
 
         self._socket = socket.socket()
-        self._socket.setblocking(0)
 
         self._socket.connect((ip, port))
         set_socket_keepalive(self._socket)
