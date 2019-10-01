@@ -126,7 +126,7 @@ class RevetherServer(object):
             # Save it to DB?
 
             # Broadcast the event
-            self.__broadcast_events([event])
+            self.__broadcast_events(current_client, [event])
 
     def __close_connection_with_client(self, current_client):
         """
@@ -146,13 +146,16 @@ class RevetherServer(object):
         for current_client in self.__connected_clients:
             self.__close_connection_with_client(current_client)
 
-    def __broadcast_events(self, events):
+    def __broadcast_events(self, from_who, events):
         """
         Broadcast a new events to all clients.
-        TODO: Don't broadcast to the client that sent the event.
 
         Args:
             events (list): The events to broadcast.
+            from_who (Client): The client who sent the event.
         """
         for current_client in self.__connected_clients:
+            if from_who is current_client:
+                continue
+
             current_client.update_about_changes(events)
