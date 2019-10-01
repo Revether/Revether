@@ -1,6 +1,14 @@
 from ..net.packets import EventPacket, ConnectionPacket
 
 
+class ClientSocket(object):
+    def __init__(self, sock):
+        self.__sock = sock
+
+    def read(self, size):
+        return self.__sock.recv(size)
+
+
 class Client(object):
     def __init__(self, sock):
         self.__sock = sock
@@ -25,13 +33,13 @@ class Client(object):
             self.__sock.send(event)
 
     def get_event(self):
-        return EventPacket.parse_stream(self.__sock)
+        return EventPacket.parse_stream(ClientSocket(self.__sock))
 
     def close_connection(self):
         self.__sock.close()
 
     def handshake(self):
-        connection_packet = ConnectionPacket.parse_stream(self.__sock)
+        connection_packet = ConnectionPacket.parse_stream(ClientSocket(self.__sock))
         self.__set_idb(connection_packet.idb_name, connection_packet.idb_hash)
         self.ready = True
 
