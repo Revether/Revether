@@ -1,6 +1,60 @@
+from functools import partial
+
 from PyQt5.QtCore import Qt, QTimer, QSize, QPoint, QRect
-from PyQt5.QtWidgets import QWidget, QLabel, QMenu, QAction
+from PyQt5.QtWidgets import QWidget, QLabel, QMenu, QAction, QDialog, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton
 from PyQt5.QtGui import QPainter, QPixmap, QRegion
+
+class SettingsDialog(QDialog):
+    def __init__(self, plugin):
+        super(SettingsDialog, self).__init__()
+        self._plugin = plugin
+
+        self._plugin.logger.debug('Showing settings dialog')
+        self.setWindowTitle('Settings')
+        self.resize(150,100)
+
+        dialog_layout = QVBoxLayout(self)
+
+        # The server address line
+        self._server_address_label = QLabel('Server Address:')
+        dialog_layout.addWidget(self._server_address_label)
+        self._server_address_input_box = QLineEdit()
+        self._server_address_input_box.setPlaceholderText('0.0.0.0')
+        dialog_layout.addWidget(self._server_address_input_box)
+
+        # The server port line
+        self._server_port_label = QLabel('Server Port:')
+        dialog_layout.addWidget(self._server_port_label)
+        self._server_port_input_box = QLineEdit()
+        self._server_port_input_box.setPlaceholderText('12345')
+        dialog_layout.addWidget(self._server_port_input_box)
+
+        # Check if the server is already configured
+        if self._plugin.config['server_address'] != self._plugin.get_default_config()['server_address']:
+            self._server_address_input_box.setText(self._plugin.config['server_address'])
+        if self._plugin.config['server_port'] != self._plugin.get_default_config()['server_port']:
+            self._server_port_input_box.setText(str(self._plugin.config['server_port']))
+
+        # Add dialog buttons
+        bottom_buttons = QWidget(self)
+        bottom_layout = QHBoxLayout(bottom_buttons)
+        self._save_button = QPushButton('Save')
+        self._save_button.clicked.connect(self.accept)
+        bottom_layout.addWidget(self._save_button)
+        self._cancel_button = QPushButton('Cancel')
+        self._cancel_button.clicked.connect(self.reject)
+        bottom_layout.addWidget(self._cancel_button)
+        dialog_layout.addWidget(bottom_buttons)
+
+    def get_result(self):
+        """
+            Returns the result of the dialog
+        """
+        return {
+            'server_address': self._server_address_input_box.text(),
+            'server_port': int(self._server_port_input_box.text())
+        }
+
 
 class StatusWidget(QWidget):
     """
@@ -31,6 +85,13 @@ class StatusWidget(QWidget):
         self._update_timer.setInterval(1000)
         self._update_timer.timeout.connect(self.update)
 
+    def _handle_server_save(self, dialog):
+        self._plugin.logger.debug('server save button cliked')
+        self._plugin.logger.debug('The saved info is: {}'.format(dialog.get_result()))
+        self._plugin.config['server_address'] = dialog.get_result()['server_address']
+        self._plugin.config['server_port'] = dialog.get_result()['server_port']
+        self._plugin.save_config()
+
     def _handle_right_click(self, point):
         self._plugin.logger.debug('Right clicked on the status widget')
         self._plugin.logger.debug('The point clicked is: {}'.format(point))
@@ -51,6 +112,9 @@ class StatusWidget(QWidget):
         settings_action = QAction('Settings', menu)
         def settings():
             self._plugin.logger.debug('Settings handler called')
+            dialog = SettingsDialog(self._plugin)
+            dialog.accepted.connect(partial(self._handle_server_save, dialog))
+            dialog.exec_()
 
         settings_action.triggered.connect(settings)
         menu.addAction(settings_action)

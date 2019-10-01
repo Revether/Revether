@@ -87,6 +87,8 @@ class Plugin(ida_idaapi.plugin_t):
         """
         return {
             'logging_level': logging.INFO,
+            'server_address': '0.0.0.0',
+            'server_port': '12345',
         }
 
     def _print_banner(self):
@@ -109,13 +111,21 @@ class Plugin(ida_idaapi.plugin_t):
         if not os.path.isfile(cfg_file):
             self._generate_config_if_not_existent(cfg_file)
 
-        with open(cfg_file) as f:
+        with open(cfg_file, 'rb') as f:
             try:
                 self._config.update(json.loads(f.read()))
             except ValueError:
                 self._logger.warning('Was not able to load the config file')
                 return
             self._logger.setLevel(self._config['logging_level'])
+
+    def save_config(self):
+        cfg_file = self.get_config_file_path()
+
+        with open(cfg_file, 'wb') as f:
+            pretty_config = json.dumps(self.config,
+                                       indent=4, separators=(',', ': '))
+            f.write(pretty_config)
 
     def init(self):
         """
