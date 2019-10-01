@@ -1,4 +1,5 @@
 from .logger import initiate_logger
+from .ui.ui import Ui
 
 import platform
 import logging
@@ -35,6 +36,7 @@ class Plugin(ida_idaapi.plugin_t):
         _log_file_full_path = os.path.join(self.get_plugin_folder()['logs'],
                                            _current_time + '.txt')
         self._logger = initiate_logger(_log_file_full_path, 'RevetherLogger', self._config['logging_level'])
+        self._ui = Ui(self)
 
     @property
     def logger(self):
@@ -123,6 +125,7 @@ class Plugin(ida_idaapi.plugin_t):
         # Lots of inits will be here
         try:
             self.load_config()
+            self._ui.update_all()
         except Exception as e:
             self._logger.error('Failed to initazlie the plugin')
             self._logger.exception(e)
