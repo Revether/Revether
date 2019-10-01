@@ -65,6 +65,7 @@ class StatusWidget(QWidget):
             else:
                 color = 'red'
                 text = 'Disconnected'
+        # TODO: Remove this except, it's only here because the network manager isn't implemented yet
         except:
             self._plugin.logger.warning('The network manager does not exist')
             color = 'red'
