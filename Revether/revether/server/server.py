@@ -21,6 +21,25 @@ class RevetherServer(object):
         self.__connected_clients = []
         self.__server_thread = None
 
+    def start(self, block=False):
+        self._server_socket.bind((self._host, self.ip))
+        self._server_socket.listen(RevetherServer.LISTEN_BACKLOG)
+
+        if block:
+            self.__server_loop()
+        else:
+            self.__server_thread = threading.Thread(target=self.__server_loop)
+            self.__server_thread.start()
+
+    def stop(self):
+        self.__stop_event.set()
+
+        if self.__server_thread:
+            self.__server_thread.join()
+
+        self.__close_connection_with_clients()
+        self._server_socket.close()
+
     def __enter__(self):
         self.start(block=True)
 
@@ -37,43 +56,42 @@ class RevetherServer(object):
 
             # Accept new client that connects to the server
             if self._server_socket in read_ready:
-                client_socket, _ = self._server_socket.accept()
-                new_client = client.Client(client_socket)
-                self.__clients.append(new_client)
-
+                self.__accept_net_client()
                 read_ready.remove(self._server_socket)
 
-            for current_client in read_ready:
-                event = current_client.get_event()
+            self.__handle_ready_clients(read_ready)
 
-                # Save it to DB?
+    def __accept_net_client(self):
+        client_socket, _ = self._server_socket.accept()
+        new_client = client.Client(client_socket)
+        self.__clients.append(new_client)
 
-                # Broadcast the event
-                self.broadcast_event(event)
+    def __handle_ready_clients(self, ready_clients):
+        for current_client in ready_clients:
+            if not current_client.ready:
+                try:
+                    current_client.hanshake()
+                except Exception as e:  # Catch only the right exceptions?
+                    # TODO: Add log about the error
+                    self.__close_connection_with_client(current_client)
 
-    def start(self, block=False):
-        self._server_socket.bind((self._host, self.ip))
-        self._server_socket.listen(RevetherServer.LISTEN_BACKLOG)
+                continue
 
-        if block:
-            self.__server_loop()
-        else:
-            self.__server_thread = threading.Thread(target=self.__server_loop)
-            self.__server_thread.start()
+            event = current_client.get_event()
+
+            # Save it to DB?
+
+            # Broadcast the event
+            self.__broadcast_event(event)
+
+    def __close_connection_with_client(self, current_client):
+        self.__clients.remove(current_client)
+        current_client.close_connection()
 
     def __close_connection_with_clients(self):
         for current_client in self.__clients:
             current_client.close_connection()
 
-    def broadcast_event(self, event):
+    def __broadcast_event(self, event):
         for current_client in self.__clients:
             current_client.update_about_changes([event])
-
-    def stop(self):
-        self.__stop_event.set()
-
-        if self.__server_thread:
-            self.__server_thread.join()
-
-        self.__close_connection_with_clients()
-        self._server_socket.close()
