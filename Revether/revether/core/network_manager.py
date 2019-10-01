@@ -22,7 +22,12 @@ class NetworkManager(object):
         self._socket.connect((ip, port))
         set_socket_keepalive(self._socket)
 
-        pkt = create_connection_packet(os.path.split(idc.get_idb_path())[-1], 123)
+        if idc.get_idb_path():
+            path = os.path.split(idc.get_idb_path())[-1]
+        else:
+            path = 'no_idb'
+
+        pkt = create_connection_packet(path, 123)
         self.send(pkt)
 
         self._connected = True
