@@ -8,11 +8,13 @@ logger = logging.getLogger('RevetherLogger')
 from ..utils.net import set_socket_keepalive
 from ..net.packets import create_connection_packet, create_event_packet
 from qt_socket import QtSocket
+from events import Events
 
 class NetworkManager(object):
     def __init__(self):
         self._socket = socket.socket()
         self._socket_manager = QtSocket(self._dispatch)
+        self._events = Events()
 
     @property
     def connected(self):
@@ -49,4 +51,4 @@ class NetworkManager(object):
 
     def _dispatch(self, incoming_pkts):
         for pkt in incoming_pkts:
-            logger.debug(pkt)
+            self._events.dispatch_event(pkt.event_type, **pkt.data)
