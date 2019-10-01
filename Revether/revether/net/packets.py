@@ -36,7 +36,7 @@ def create_event_packet(event_type, *args, **kwargs):
 
 
 def create_connection_packet(idb_name, idb_hash):
-    return ConnectionPacket(dict(
+    return ConnectionPacket.build(dict(
         idb_name=idb_name,
         idb_hash=idb_hash
     ))
