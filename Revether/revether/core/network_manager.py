@@ -1,3 +1,8 @@
+from ..utils.net import set_socket_keepalive
+from ..net.packets import create_connection_packet, create_event_packet
+from qt_socket import QtSocket
+from events import Events
+
 import socket
 import os
 
@@ -5,10 +10,7 @@ import idc
 
 import logging
 logger = logging.getLogger('RevetherLogger')
-from ..utils.net import set_socket_keepalive
-from ..net.packets import create_connection_packet, create_event_packet
-from qt_socket import QtSocket
-from events import Events
+
 
 class NetworkManager(object):
     def __init__(self):

@@ -2,6 +2,7 @@ from .status_widget import StatusWidget
 
 from PyQt5.QtWidgets import qApp, QMainWindow
 
+
 class Ui(object):
     def __init__(self, plugin):
         plugin.logger.debug('Initating the plugin UI')

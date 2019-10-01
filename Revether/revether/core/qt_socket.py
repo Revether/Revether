@@ -5,6 +5,7 @@ from ..net.packets import EventPacket
 from PyQt5.QtCore import QObject, QSocketNotifier, QEvent, QCoreApplication
 import construct
 
+
 class SocketEvent(QEvent):
     """
         This Event is being sent when a new socket event is happening,
@@ -16,12 +17,14 @@ class SocketEvent(QEvent):
     def __init__(self):
         super(SocketEvent, self).__init__(SocketEvent.EVENT_TYPE)
 
+
 class ClientSocket(object):
     def __init__(self, sock):
         self.__sock = sock
 
     def read(self, size):
         return self.__sock.recv(size)
+
 
 class QtSocket(QObject):
     """
@@ -78,7 +81,7 @@ class QtSocket(QObject):
     def _handle_recv_ready(self):
         try:
             pkt = EventPacket.parse_stream(ClientSocket(self._socket))
-        except construct.StreamError as e:
+        except construct.StreamError:
             self.disconnect()
             return
         self._incoming.append(pkt)

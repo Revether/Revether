@@ -5,6 +5,7 @@ from ..net.packets import EventType
 
 logger = logging.getLogger('RevetherLogger')
 
+
 class IDBHooks(ida_idp.IDB_Hooks):
     def __init__(self, network_manager):
         super(IDBHooks, self).__init__()

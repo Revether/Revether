@@ -4,6 +4,7 @@ from PyQt5.QtCore import Qt, QTimer, QSize, QPoint, QRect
 from PyQt5.QtWidgets import QWidget, QLabel, QMenu, QAction, QDialog, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton
 from PyQt5.QtGui import QPainter, QPixmap, QRegion
 
+
 class SettingsDialog(QDialog):
     def __init__(self, plugin):
         super(SettingsDialog, self).__init__()
@@ -11,7 +12,7 @@ class SettingsDialog(QDialog):
 
         self._plugin.logger.debug('Showing settings dialog')
         self.setWindowTitle('Settings')
-        self.resize(150,100)
+        self.resize(150, 100)
 
         dialog_layout = QVBoxLayout(self)
 
@@ -97,6 +98,7 @@ class StatusWidget(QWidget):
         # Connect to configured server
         if not self._plugin.network_manager.connected:
             connect_action = QAction('Connect', menu)
+
             def connect():
                 self._plugin.logger.debug('Connect handler called')
                 self._plugin.network_manager.connect(
@@ -109,6 +111,7 @@ class StatusWidget(QWidget):
             menu.addAction(connect_action)
         else:
             disconnect_action = QAction('Disconnect', menu)
+
             def disconnect():
                 self._plugin.logger.debug('Disconnect handler called')
                 self._plugin.network_manager.send('disconnecting')
@@ -118,11 +121,11 @@ class StatusWidget(QWidget):
             disconnect_action.triggered.connect(disconnect)
             menu.addAction(disconnect_action)
 
-
         menu.addSeparator()
 
         # Settings button
         settings_action = QAction('Settings', menu)
+
         def settings():
             self._plugin.logger.debug('Settings handler called')
             dialog = SettingsDialog(self._plugin)

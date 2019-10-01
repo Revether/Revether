@@ -1,6 +1,5 @@
-from idb_hooks import *
+from idb_hooks import IDBHooks
 
-import logging
 
 class Core(object):
     def __init__(self, plugin):
