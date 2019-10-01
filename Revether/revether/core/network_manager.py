@@ -13,10 +13,10 @@ logger = logging.getLogger('RevetherLogger')
 
 
 class NetworkManager(object):
-    def __init__(self):
+    def __init__(self, plugin):
         self._socket = None
         self._socket_manager = QtSocket(self._dispatch)
-        self._events = Events()
+        self._events = Events(plugin)
 
     @property
     def connected(self):

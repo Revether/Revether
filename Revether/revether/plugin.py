@@ -145,7 +145,7 @@ class Plugin(ida_idaapi.plugin_t):
         # Lots of inits will be here
         try:
             self.load_config()
-            self._network_manager = NetworkManager()
+            self._network_manager = NetworkManager(self)
             self._ui = Ui(self)
             self._ui.update_all()
             self._core = Core(self)

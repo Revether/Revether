@@ -9,13 +9,15 @@ logger = logging.getLogger('RevetherLogger')
 
 
 class Events(object):
-    def __init__(self):
-        pass
+    def __init__(self, plugin):
+        self._plugin = plugin
 
     def dispatch_event(self, event_type, *args, **kwargs):
         func_name = '_on_{}'.format(str(event_type).lower())
         func = getattr(self, func_name)
+        self._plugin.core.uninstall_hooks()
         func(**kwargs)
+        self._plugin.core.install_hooks()
 
     def _on_makecode(self, ea):
         logger.debug('on_make_code_called')
