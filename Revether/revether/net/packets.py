@@ -29,7 +29,7 @@ ConnectionPacket = construct.Struct(
 def create_event_packet(event_type, *args, **kwargs):
     return EventPacket.build(dict(
         event_type=event_type,
-        **kwargs
+        data=dict(**kwargs)
     ))
 
 
