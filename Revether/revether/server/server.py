@@ -158,4 +158,8 @@ class RevetherServer(object):
             if from_who is current_client:
                 continue
 
+            # TODO: 2 different IDBs with the same name?
+            if from_who.idb_name != current_client.idb_name:
+                continue
+
             current_client.update_about_changes(events)
