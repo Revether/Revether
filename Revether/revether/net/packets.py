@@ -19,8 +19,22 @@ class EventType(enum.Enum):
     COMMENTCHANGED = 10
 
 
+class PacketType(enum.Enum):
+    CONNECTION = 0
+    EVENT = 1
+    REQUEST = 2
+
+
+class RequestType(enum.Enum):
+    UPLOAD_IDB = 0
+
+
+ConnectionPacket = construct.Struct(
+    'idb_name' / construct.PascalString(construct.Int16ub, 'utf-8'),
+    'idb_hash' / construct.Bytes(SHA1_HASH_BYTES_LENGTH),
+)
+
 EventPacket = construct.Struct(
-    'version' / construct.Const(LATEST_VERSION, construct.Int8ub),
     'event_type' / construct.Enum(construct.Int8ub, EventType),
     'data' / construct.Switch(lambda ctx: int(ctx.event_type), {
         EventType.MAKECODE.value: construct.Struct('ea' / construct.Int32ub),
@@ -70,24 +84,37 @@ EventPacket = construct.Struct(
     })
 )
 
-
-ConnectionPacket = construct.Struct(
-    # The version being validated automatically
-    'version' / construct.Const(LATEST_VERSION, construct.Int8ub),
-    'idb_name' / construct.PascalString(construct.Int16ub, 'utf-8'),
-    'idb_hash' / construct.Bytes(SHA1_HASH_BYTES_LENGTH),
+RevetherPacket = construct.Struct(
+    'header' / construct.Struct(
+        'version' / construct.Const(LATEST_VERSION, construct.Int8ub),
+        'type' / construct.Enum(construct.Int8ub, PacketType),
+    ),
+    'body' / construct.Switch(lambda ctx: int(ctx.header.type), {
+        PacketType.EVENT.value: EventPacket,
+        PacketType.CONNECTION.value: ConnectionPacket
+    })
 )
 
 
 def create_event_packet(event_type, *args, **kwargs):
-    return EventPacket.build(dict(
-        event_type=event_type,
-        data=dict(**kwargs)
+    return RevetherPacket.build(dict(
+        header=dict(
+            type=PacketType.EVENT.value,
+        ),
+        body=dict(
+            event_type=event_type,
+            data=dict(**kwargs)
+        )
     ))
 
 
 def create_connection_packet(idb_name, idb_hash):
-    return ConnectionPacket.build(dict(
-        idb_name=idb_name,
-        idb_hash=idb_hash
+    return RevetherPacket.build(dict(
+        header=dict(
+            type=PacketType.CONNECTION.value
+        ),
+        body=dict(
+            idb_name=idb_name,
+            idb_hash=idb_hash
+        )
     ))

@@ -55,5 +55,5 @@ class NetworkManager(object):
         for pkt in incoming_pkts:
             # We have to remove the inernal _io that construct
             # is inserting into the gotten pkt from the parse_stream
-            del pkt.data['_io']
-            self._events.dispatch_event(pkt.event_type, **pkt.data)
+            del pkt.body.data['_io']
+            self._events.dispatch_event(pkt.body.event_type, **pkt.body.data)

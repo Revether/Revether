@@ -1,6 +1,6 @@
 import socket
 
-from ..net.packets import EventPacket
+from ..net.packets import RevetherPacket
 
 from PyQt5.QtCore import QObject, QSocketNotifier, QEvent, QCoreApplication
 import construct
@@ -80,7 +80,7 @@ class QtSocket(QObject):
 
     def _handle_recv_ready(self):
         try:
-            pkt = EventPacket.parse_stream(ClientSocket(self._socket))
+            pkt = RevetherPacket.parse_stream(ClientSocket(self._socket))
         except construct.StreamError:
             self.disconnect()
             return
