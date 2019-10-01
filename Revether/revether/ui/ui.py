@@ -1,4 +1,4 @@
-from .widget import StatusWidget
+from .status_widget import StatusWidget
 
 from PyQt5.QtWidgets import qApp, QMainWindow
 
