@@ -121,6 +121,7 @@ class RevetherServer(object):
                 continue
 
             event = current_client.get_event()
+            self.__logger.debug("Got event: {}".format(event))
 
             # Save it to DB?
 
