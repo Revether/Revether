@@ -9,16 +9,14 @@ class EventType(enum.Enum):
     MAKECODE = 0
 
 
-EventPacket = construct.EmbeddedSwitch(
-    construct.Struct(
-        'version' / construct.Const(LATEST_VERSION, construct.Int8ub),
-        'event_type' / construct.Enum(construct.Int8ub, EventType)
-    ),
-    construct.this.event_type,
-    {
+EventPacket = construct.Struct(
+    'version' / construct.Const(LATEST_VERSION, construct.Int8ub),
+    'event_type' / construct.Enum(construct.Int8ub, EventType),
+    'data' / construct.Switch(lambda ctx: int(ctx.event_type), {
         EventType.MAKECODE.value: construct.Struct('ea' / construct.Int32ub)
-    }
+    })
 )
+
 
 ConnectionPacket = construct.Struct(
     # The version being validated automatically

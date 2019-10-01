@@ -30,7 +30,7 @@ class Client(object):
 
     def update_about_changes(self, events):
         for event in events:
-            self.__sock.send(event)
+            self.__sock.send(EventPacket.build(event))
 
     def get_event(self):
         return EventPacket.parse_stream(ClientSocket(self.__sock))

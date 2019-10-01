@@ -112,7 +112,7 @@ class RevetherServer(object):
                 try:
                     current_client.handshake()
                     self.__logger.info("Handshake complete, idb_name: {}, idb_hash: {}".format(
-                        current_client.idb_name, current_client.idb_hash))
+                        current_client.idb_name, current_client.idb_hash.encode('hex')))
                 except Exception as e:  # Catch only the right exceptions?
                     self.__logger.error("Error while handshake with client: {}".format(e))
                     self.__logger.exception(e)
