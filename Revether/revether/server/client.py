@@ -1,4 +1,4 @@
-from ..net.packets import EventPacket, ConnectionPacket, LATEST_VERSION
+from ..net.packets import EventPacket, ConnectionPacket
 
 
 class Client(object):
