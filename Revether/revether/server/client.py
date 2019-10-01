@@ -11,8 +11,9 @@ class ClientSocket(object):
 
 
 class Client(object):
-    def __init__(self, sock):
+    def __init__(self, sock, addr):
         self.__sock = sock
+        self.addr = addr
 
         self.idb_hash = None
         self.idb_name = None
