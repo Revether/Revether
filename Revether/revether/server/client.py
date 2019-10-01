@@ -1,3 +1,4 @@
+import construct
 from ..net.packets import EventPacket, ConnectionPacket
 
 
@@ -33,13 +34,20 @@ class Client(object):
             self.__sock.send(EventPacket.build(event))
 
     def get_event(self):
-        return EventPacket.parse_stream(ClientSocket(self.__sock))
+        try:
+            return EventPacket.parse_stream(ClientSocket(self.__sock))
+        except construct.ConstructError:
+            raise EOFError
 
     def close_connection(self):
         self.__sock.close()
 
     def handshake(self):
-        connection_packet = ConnectionPacket.parse_stream(ClientSocket(self.__sock))
+        try:
+            connection_packet = ConnectionPacket.parse_stream(ClientSocket(self.__sock))
+        except construct.ConstructError:
+            raise EOFError
+
         self.__set_idb(connection_packet.idb_name, connection_packet.idb_hash)
         self.ready = True
 
