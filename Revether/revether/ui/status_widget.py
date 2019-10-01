@@ -4,7 +4,7 @@ from PyQt5.QtGui import QPainter, QPixmap, QRegion
 
 class StatusWidget(QWidget):
     """
-        This is the widget the will be displayed in the bottom right
+        This is the widget that will be displayed in the bottom right
         of the ida window and will update the status of connection
     """
 
