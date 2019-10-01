@@ -76,35 +76,49 @@ class StatusWidget(QWidget):
 
         self._server_status_widget = self.generate_label()
 
-        # Create a custom right-click menu context
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self._handle_right_click)
-
         # Update the widget every one second
         self._update_timer = QTimer()
         self._update_timer.setInterval(1000)
         self._update_timer.timeout.connect(self.update)
 
+        # Create a custom right-click menu context
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self._handle_right_click)
+
     def _handle_server_save(self, dialog):
-        self._plugin.logger.debug('server save button cliked')
         self._plugin.logger.debug('The saved info is: {}'.format(dialog.get_result()))
         self._plugin.config['server_address'] = dialog.get_result()['server_address']
         self._plugin.config['server_port'] = dialog.get_result()['server_port']
         self._plugin.save_config()
 
     def _handle_right_click(self, point):
-        self._plugin.logger.debug('Right clicked on the status widget')
-        self._plugin.logger.debug('The point clicked is: {}'.format(point))
-
         menu = QMenu(self)
 
         # Connect to configured server
-        connect_action = QAction('Connect', menu)
-        def connect():
-            self._plugin.logger.debug('Connect handler called')
+        if not self._plugin.network_manager.connected:
+            connect_action = QAction('Connect', menu)
+            def connect():
+                self._plugin.logger.debug('Connect handler called')
+                self._plugin.network_manager.connect(
+                    self._plugin.config['server_address'],
+                    self._plugin.config['server_port']
+                )
+                self._plugin.network_manager.send('first_packet')
+                self.update()
 
-        connect_action.triggered.connect(connect)
-        menu.addAction(connect_action)
+            connect_action.triggered.connect(connect)
+            menu.addAction(connect_action)
+        else:
+            disconnect_action = QAction('Disconnect', menu)
+            def connect():
+                self._plugin.logger.debug('Disconnect handler called')
+                self._plugin.network_manager.send('disconnecting')
+                self._plugin.network_manager.disconnect()
+                self.update()
+
+            disconnect_action.triggered.connect(connect)
+            menu.addAction(disconnect_action)
+
 
         menu.addSeparator()
 
@@ -121,17 +135,11 @@ class StatusWidget(QWidget):
 
         menu.exec_(self.mapToGlobal(point))
 
-    def upadte(self):
-        try:
-            if self._plugin.network_manager.conncted:
-                color = 'green'
-                text = 'Connected'
-            else:
-                color = 'red'
-                text = 'Disconnected'
-        # TODO: Remove this except, it's only here because the network manager isn't implemented yet
-        except:
-            self._plugin.logger.warning('The network manager does not exist')
+    def update(self):
+        if self._plugin.network_manager.connected:
+            color = 'green'
+            text = 'Connected'
+        else:
             color = 'red'
             text = 'Disconnected'
 
@@ -146,7 +154,8 @@ class StatusWidget(QWidget):
         self._plugin.logger.debug('Adding the status bar widget')
         ida_window.statusBar().addPermanentWidget(self)
         self._update_timer.start()
-        self.upadte()
+        self._plugin.logger.debug('Started timer')
+        self.update()
 
     def remove_widget(self, ida_window):
         self._plugin.logger.debug('Removing the status bar widget')

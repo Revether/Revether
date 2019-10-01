@@ -1,5 +1,6 @@
 from .logger import initiate_logger
 from .ui.ui import Ui
+from .core.network_manager import NetworkManager
 
 import platform
 import logging
@@ -36,7 +37,6 @@ class Plugin(ida_idaapi.plugin_t):
         _log_file_full_path = os.path.join(self.get_plugin_folder()['logs'],
                                            _current_time + '.txt')
         self._logger = initiate_logger(_log_file_full_path, 'RevetherLogger', self._config['logging_level'])
-        self._ui = Ui(self)
 
     @property
     def logger(self):
@@ -45,6 +45,10 @@ class Plugin(ida_idaapi.plugin_t):
     @property
     def config(self):
         return self._config
+
+    @property
+    def network_manager(self):
+        return self._network_manager
 
     @staticmethod
     def get_plugin_folder():
@@ -135,6 +139,8 @@ class Plugin(ida_idaapi.plugin_t):
         # Lots of inits will be here
         try:
             self.load_config()
+            self._network_manager = NetworkManager()
+            self._ui = Ui(self)
             self._ui.update_all()
         except Exception as e:
             self._logger.error('Failed to initazlie the plugin')
