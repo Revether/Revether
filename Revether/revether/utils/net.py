@@ -1,6 +1,7 @@
 import socket
 import sys
 
+
 def set_socket_keepalive(sock, idle=1, interval=3, fail_count=5):
     """
     Set socket keep-alive
@@ -14,7 +15,8 @@ def set_socket_keepalive(sock, idle=1, interval=3, fail_count=5):
 
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
 
-    # This code is taken from: https://github.com/andymccurdy/redis-py/blob/master/redis/connection.py
+    # This code is taken from:
+    # https://github.com/andymccurdy/redis-py/blob/master/redis/connection.py
     # detect available options
     TCP_KEEPCNT = getattr(socket, 'TCP_KEEPCNT', None)
     TCP_KEEPINTVL = getattr(socket, 'TCP_KEEPINTVL', None)
@@ -35,5 +37,4 @@ def set_socket_keepalive(sock, idle=1, interval=3, fail_count=5):
     elif TCP_KEEPALIVE is not None:
         sock.setsockopt(socket.IPPROTO_TCP, TCP_KEEPALIVE, idle)
     elif SIO_KEEPALIVE_VALS is not None:
-        sock.ioctl(SIO_KEEPALIVE_VALS,
-                (1, idle * 1000, interval * 1000))
+        sock.ioctl(SIO_KEEPALIVE_VALS, (1, idle * 1000, interval * 1000))
