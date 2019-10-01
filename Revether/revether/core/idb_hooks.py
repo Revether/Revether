@@ -27,10 +27,11 @@ class IDBHooks(ida_idp.IDB_Hooks):
         return 0
 
     def renamed(self, ea, new_name, local_name):
+        logger.debug('Inside renamed hook in ida')
         self._network.send_event(
             EventType.RENAMED,
             ea=ea,
-            new_name=new_name,
+            new_name=unicode(new_name, 'utf-8'),
             local_name=local_name
             )
         return 0
@@ -93,7 +94,7 @@ class IDBHooks(ida_idp.IDB_Hooks):
 
     def cmt_changed(self, ea, repeatable_cmt):
         cmt = ida_bytes.get_cmt(ea, repeatable_cmt)
-        cmt = "" if not cmt else cmt
+        cmt = u'' if not cmt else unicode(cmt)
         self._network.send_event(
             EventType.COMMENTCHANGED,
             ea=ea,

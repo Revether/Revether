@@ -25,8 +25,9 @@ class Events(object):
         ida_bytes.create_data(ea, flags, size, tid)
 
     def _on_renamed(self, ea, new_name, local_name):
-        flags = ida_name.SN_LOCAL if self.local_name else 0
-        ida_name.set_name(ea, new_name, flags | ida_name.SN_NOWARN)
+        logger.debug('Inside renamed event from server')
+        flags = ida_name.SN_LOCAL if local_name else 0
+        ida_name.set_name(ea, str(new_name), flags | ida_name.SN_NOWARN)
         ida_kernwin.request_refresh(ida_kernwin.IWID_DISASMS)
 
     def _on_funcadd(self, start_ea, end_ea):
@@ -54,4 +55,4 @@ class Events(object):
         ida_funcs.set_tail_owner(tail, owner_func)
 
     def _on_commentchanged(self, ea, comment, repeatable):
-        ida_bytes.set_cmt(ea, comment, repeatable)
+        ida_bytes.set_cmt(ea, str(comment), repeatable)

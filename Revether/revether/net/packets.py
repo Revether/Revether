@@ -79,7 +79,7 @@ EventPacket = construct.Struct(
         EventType.COMMENTCHANGED.value: construct.Struct(
             'ea' / construct.Int32ub,
             'comment' / construct.PascalString(construct.Int16ub, 'utf-8'),
-            'repeatable' / construct.Int32ub
+            'repeatable' / construct.Flag
             ),
     })
 )

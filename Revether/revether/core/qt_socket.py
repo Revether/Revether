@@ -6,6 +6,10 @@ from PyQt5.QtCore import QObject, QSocketNotifier, QEvent, QCoreApplication
 import construct
 
 
+import logging
+logger = logging.getLogger('RevetherLogger')
+
+
 class SocketEvent(QEvent):
     """
         This Event is being sent when a new socket event is happening,
@@ -62,6 +66,8 @@ class QtSocket(QObject):
 
         self._socket = sock
         self._connected = True
+        self._incoming = []
+        self._outgoing = []
 
     def disconnect(self):
         if not self._socket:
@@ -77,8 +83,13 @@ class QtSocket(QObject):
 
         self._socket = None
         self._connected = False
+        self._incoming = []
+        self._outgoing = []
 
     def _handle_recv_ready(self):
+        if not self.connected:
+            return
+
         try:
             pkt = RevetherPacket.parse_stream(ClientSocket(self._socket))
         except construct.StreamError:
@@ -93,9 +104,13 @@ class QtSocket(QObject):
         self._outgoing.append(pkt)
 
     def _handle_send_ready(self):
+        if not self.connected:
+            return
+
         for pkt in self._outgoing:
             try:
-                self._socket.send(pkt)
+                logger.debug('Sending: {}'.format(RevetherPacket.parse(pkt)))
+                logger.debug('sent length: {}'.format(self._socket.send(pkt)))
             except socket.error as e:
                 self._logger.error(e)
                 return

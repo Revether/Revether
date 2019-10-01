@@ -14,7 +14,7 @@ logger = logging.getLogger('RevetherLogger')
 
 class NetworkManager(object):
     def __init__(self):
-        self._socket = socket.socket()
+        self._socket = None
         self._socket_manager = QtSocket(self._dispatch)
         self._events = Events()
 
@@ -24,12 +24,14 @@ class NetworkManager(object):
 
     def send_event(self, event_type, *args, **kwargs):
         pkt = create_event_packet(event_type.value, *args, **kwargs)
-        logger.debug(pkt.encode('hex'))
         self._socket_manager.send_packet(pkt)
 
     def connect(self, ip, port):
         if self._socket_manager.connected:
             return
+
+        self._socket = socket.socket()
+        self._socket.setblocking(0)
 
         self._socket.connect((ip, port))
         set_socket_keepalive(self._socket)
@@ -46,7 +48,6 @@ class NetworkManager(object):
 
     def disconnect(self):
         self._socket_manager.disconnect()
-        self._socket = socket.socket()
 
     def send(self, data):
         self._socket.send(data)
