@@ -7,27 +7,30 @@ import logging
 logger = logging.getLogger('RevetherLogger')
 from ..utils.net import set_socket_keepalive
 from ..net.packets import create_connection_packet, create_event_packet
+from qt_socket import QtSocket
 
 class NetworkManager(object):
     def __init__(self):
         self._socket = socket.socket()
-        self._connected = False
+        self._socket_manager = QtSocket(self._dispatch)
 
     @property
     def connected(self):
-        return self._connected
+        return self._socket_manager.connected
 
     def send_event(self, event_type, *args, **kwargs):
         pkt = create_event_packet(event_type.value, *args, **kwargs)
         logger.debug(pkt.encode('hex'))
-        self.send(pkt)
+        self._socket_manager.send_packet(pkt)
 
     def connect(self, ip, port):
-        if self._connected:
+        if self._socket_manager.connected:
             return
 
         self._socket.connect((ip, port))
         set_socket_keepalive(self._socket)
+
+        self._socket_manager.initialize_socket(self._socket)
 
         if idc.get_idb_path():
             path = unicode(os.path.split(idc.get_idb_path())[-1])
@@ -35,14 +38,15 @@ class NetworkManager(object):
             path = u'no_idb'
 
         pkt = create_connection_packet(path, '\x00'*20)
-        self.send(pkt)
-
-        self._connected = True
+        self._socket_manager.send_packet(pkt)
 
     def disconnect(self):
-        self._socket.close()
-        self._connected = False
+        self._socket_manager.disconnect()
         self._socket = socket.socket()
 
     def send(self, data):
         self._socket.send(data)
+
+    def _dispatch(self, incoming_pkts):
+        for pkt in incoming_pkts:
+            logger.debug(pkt)
