@@ -3,8 +3,10 @@ import os
 
 import idc
 
+import logging
+logger = logging.getLogger('RevetherLogger')
 from ..utils.net import set_socket_keepalive
-from ..net.packets import create_connection_packet
+from ..net.packets import create_connection_packet, create_event_packet
 
 class NetworkManager(object):
     def __init__(self):
@@ -15,6 +17,11 @@ class NetworkManager(object):
     def connected(self):
         return self._connected
 
+    def send_event(self, event_type, *args, **kwargs):
+        pkt = create_event_packet(event_type.value, *args, **kwargs)
+        logger.debug(pkt.encode('hex'))
+        self.send(pkt)
+
     def connect(self, ip, port):
         if self._connected:
             return
@@ -23,11 +30,11 @@ class NetworkManager(object):
         set_socket_keepalive(self._socket)
 
         if idc.get_idb_path():
-            path = os.path.split(idc.get_idb_path())[-1]
+            path = unicode(os.path.split(idc.get_idb_path())[-1])
         else:
-            path = 'no_idb'
+            path = u'no_idb'
 
-        pkt = create_connection_packet(path, 123)
+        pkt = create_connection_packet(path, '\x00'*20)
         self.send(pkt)
 
         self._connected = True
