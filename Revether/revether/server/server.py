@@ -11,9 +11,9 @@ from ..utils.select_event import SelectableEvent
 class RevetherServer(object):
     LISTEN_BACKLOG = 5
 
-    def __init__(self, host, ip):
+    def __init__(self, host, port):
         self.host = host
-        self.ip = ip
+        self.port = port
 
         self.__server_socket = socket.socket(
             socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
@@ -29,8 +29,8 @@ class RevetherServer(object):
             block (bool): Should this function block. Default is False.
                           When False, new thread will be created.
         """
-        self._server_socket.bind((self._host, self.ip))
-        self._server_socket.listen(RevetherServer.LISTEN_BACKLOG)
+        self.__server_socket.bind((self.host, self.port))
+        self.__server_socket.listen(RevetherServer.LISTEN_BACKLOG)
 
         if block:
             self.__server_loop()
@@ -50,7 +50,7 @@ class RevetherServer(object):
             self.__server_thread.join()
 
         self.__close_connection_with_clients()
-        self._server_socket.close()
+        self.__server_socket.close()
 
     def __enter__(self):
         self.start(block=True)
@@ -65,7 +65,7 @@ class RevetherServer(object):
         """
         while True:
             read_ready, _, _ = select.select(
-                [self._server_socket, self.__stop_event] + self.__clients,
+                [self.__server_socket, self.__stop_event] + self.__connected_clients,
                 [],
                 []
             )
@@ -74,9 +74,9 @@ class RevetherServer(object):
                 break
 
             # Accept new client that connects to the server
-            if self._server_socket in read_ready:
+            if self.__server_socket in read_ready:
                 self.__accept_new_client()
-                read_ready.remove(self._server_socket)
+                read_ready.remove(self.__server_socket)
 
             self.__handle_ready_clients(read_ready)
 
@@ -86,9 +86,9 @@ class RevetherServer(object):
             Note:
                 Function is blocking, should be called after selected the server socket.
         """
-        client_socket, _ = self._server_socket.accept()
+        client_socket, _ = self.__server_socket.accept()
         new_client = client.Client(client_socket)
-        self.__clients.append(new_client)
+        self.__connected_clients.append(new_client)
 
     def __handle_ready_clients(self, ready_clients):
         """
@@ -123,14 +123,14 @@ class RevetherServer(object):
         Args:
             current_client (Client): The client to close.
         """
-        self.__clients.remove(current_client)
+        self.__connected_clients.remove(current_client)
         current_client.close_connection()
 
     def __close_connection_with_clients(self):
         """
         Close connection with all the clients.
         """
-        for current_client in self.__clients:
+        for current_client in self.__connected_clients:
             self.__close_connection_with_clients(current_client)
 
     def __broadcast_events(self, events):
@@ -141,5 +141,5 @@ class RevetherServer(object):
         Args:
             events (list): The events to broadcast.
         """
-        for current_client in self.__clients:
+        for current_client in self.__connected_clients:
             current_client.update_about_changes(events)
