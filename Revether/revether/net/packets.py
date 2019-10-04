@@ -160,6 +160,14 @@ def create_event_packet(event_type, *args, **kwargs):
         )
     ))
 
+def wrap_event(self, event_packet):
+    return RevetherPacket.build(dict(
+        header=dict(
+            type=PacketType.EVENT.value,
+        ),
+        body=event_packet
+    ))
+
 
 def create_connection_packet(idb_name, idb_hash):
     return RevetherPacket.build(dict(
@@ -169,5 +177,17 @@ def create_connection_packet(idb_name, idb_hash):
         body=dict(
             idb_name=idb_name,
             idb_hash=idb_hash
+        )
+    ))
+
+
+def create_request_packet(request_type, *args, **kwargs):
+    return RevetherPacket.build(dict(
+        header=dict(
+            type=PacketType.REQUEST.value
+        ),
+        body=dict(
+            request_type=request_type,
+            data=dict(**kwargs)
         )
     ))

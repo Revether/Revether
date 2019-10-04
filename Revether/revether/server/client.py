@@ -21,6 +21,10 @@ class Client(object):
         # The client and server handshaked
         self.ready = False
 
+        # Used to **download** files form the client.
+        # The client is uploading to the server
+        self.downloader = None
+
     def fileno(self):
         return self.__sock.fileno()
 
@@ -34,11 +38,8 @@ class Client(object):
         for event in events:
             self.__sock.send(RevetherPacket.build(event))
 
-    def get_event(self):
-        try:
-            return RevetherPacket.parse_stream(ClientSocket(self.__sock))
-        except construct.ConstructError:
-            raise EOFError
+    def get_packet(self):
+        return RevetherPacket.parse_stream(ClientSocket(self.__sock))
 
     def close_connection(self):
         self.__sock.close()
@@ -58,3 +59,6 @@ class Client(object):
     def __set_idb(self, idb_name, idb_hash):
         self.idb_name = idb_name
         self.idb_hash = idb_hash
+
+    def send_pkt(self, pkt):
+        self.__sock.send(pkt)
