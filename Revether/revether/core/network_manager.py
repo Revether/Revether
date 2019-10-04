@@ -1,5 +1,5 @@
 from ..utils.net import set_socket_keepalive
-from ..net.packets import create_connection_packet, create_event_packet
+from ..net.packets import create_connection_packet, create_event_packet, create_request_packet
 from qt_socket import QtSocket
 from events import Events
 
@@ -24,6 +24,10 @@ class NetworkManager(object):
 
     def send_event(self, event_type, *args, **kwargs):
         pkt = create_event_packet(event_type.value, *args, **kwargs)
+        self._socket_manager.send_packet(pkt)
+
+    def send_request(self, request_type, *args, **kwargs):
+        pkt = create_request_packet(request_type.value, *args, **kwargs)
         self._socket_manager.send_packet(pkt)
 
     def connect(self, ip, port):

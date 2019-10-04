@@ -5,6 +5,7 @@ from ..net.packets import RevetherPacket
 from PyQt5.QtCore import QObject, QSocketNotifier, QEvent, QCoreApplication
 import construct
 
+import time
 
 import logging
 logger = logging.getLogger('RevetherLogger')
@@ -107,14 +108,18 @@ class QtSocket(QObject):
         if not self.connected:
             return
 
-        for pkt in self._outgoing:
-            try:
-                logger.debug('Sending: {}'.format(RevetherPacket.parse(pkt)))
-                logger.debug('sent length: {}'.format(self._socket.send(pkt)))
-            except socket.error as e:
-                self._logger.error(e)
-                return
-        self._outgoing = []
+        if not self._outgoing:
+            return
+
+        pkt = self._outgoing.pop(0)
+
+        try:
+            logger.debug('Sending: {}'.format(RevetherPacket.parse(pkt)))
+            logger.debug('sent length: {}'.format(self._socket.send(pkt)))
+        except socket.error as e:
+            logger.error(e)
+            return
+        time.sleep(0.01)
 
     def event(self, event):
         """

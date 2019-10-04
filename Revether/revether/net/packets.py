@@ -123,7 +123,7 @@ EventPacket = construct.Struct(
 )
 
 RequestPacket = construct.Struct(
-    'request_type', / construct.Enum(construct.Int8ub, RequestType),
+    'request_type' / construct.Enum(construct.Int8ub, RequestType),
     'data' / construct.Switch(lambda ctx: int(ctx.request_type), {
         RequestType.UPLOAD_IDB_START.value: construct.Struct(
             'idb_name' / construct.PascalString(construct.Int16ub, 'utf-8'),
@@ -134,7 +134,7 @@ RequestPacket = construct.Struct(
             'size' / construct.Int32ub,
             'data' / construct.Bytes(construct.this.size)
         )
-    }
+    })
 )
 
 RevetherPacket = construct.Struct(
@@ -144,7 +144,8 @@ RevetherPacket = construct.Struct(
     ),
     'body' / construct.Switch(lambda ctx: int(ctx.header.type), {
         PacketType.EVENT.value: EventPacket,
-        PacketType.CONNECTION.value: ConnectionPacket
+        PacketType.CONNECTION.value: ConnectionPacket,
+        PacketType.REQUEST.value: RequestPacket
     })
 )
 
@@ -159,6 +160,7 @@ def create_event_packet(event_type, *args, **kwargs):
             data=dict(**kwargs)
         )
     ))
+
 
 def wrap_event(self, event_packet):
     return RevetherPacket.build(dict(
