@@ -127,17 +127,12 @@ class RevetherServer(object):
             try:
                 pkt_type, data = current_client.get_packet()
             except construct.ConstructError as e:
-                self.__logger.error("Error while trying to get data from client {}".format(e))
-                self.__logger.error("Closing connection with client {}".format(current_client.addr))
+                self.__logger.error("Error while trying to get data from client: {}".format(e))
+                self.__logger.error("Closing connection with client: {}".format(current_client.addr))
                 self.__close_connection_with_client(current_client)
                 continue
 
             self.__handle_pkt(current_client, pkt_type, data)
-
-            # Save it to DB?
-
-            # Broadcast the event
-            self.__broadcast_events(current_client, [event])
 
     def __handle_pkt(self, current_client, pkt_type, data):
         """
@@ -149,11 +144,11 @@ class RevetherServer(object):
             data (dict): The packet data (Usually a construct body)
         """
         try:
-            self.__pkt_handlers[pkt_type](data)
+            self.__pkt_handlers[pkt_type](current_client, data)
         except KeyError:
-            self.logger.error("Got an invalid packet type from client: {}".format(pkt_type))
+            self.__logger.error("Got an invalid packet type from client: {}".format(pkt_type))
         except Exception as e:
-            self.logger.error("General exception occurred while handling packet: {}".format(e))
+            self.__logger.error("General exception occurred while handling packet: {}".format(e))
 
     def __close_connection_with_client(self, current_client):
         """
@@ -200,7 +195,7 @@ class RevetherServer(object):
             current_client (Client): The client that sent the event
             data (dict): The event data (Construct packet body)
         """
-        self.logger.debug(
+        self.__logger.debug(
             "Got event from the client {}: {}".format(current_client.addr, data))
 
         # TODO: Save the event to the DB
@@ -215,10 +210,11 @@ class RevetherServer(object):
             current_client (Client): The client that requested the operation
             data (dict): The body of the packet
         """
-        request_type = data.request_type
+        request_type = int(data.request_type)
+        del data.data['_io']
 
         try:
-            self.__requests_manager.dispatch_request_handler(current_client, request_type, **data)
+            self.__requests_manager.dispatch_request_handler(current_client, request_type, **data.data)
         except RevetherServerErrorWithCode as e:
             # Update the client about the failure
             current_client.send_pkt(create_request_packet(e.code))

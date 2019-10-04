@@ -34,7 +34,7 @@ class PacketType(enum.Enum):
 class RequestType(enum.Enum):
     UPLOAD_IDB_START = 0
     UPLOAD_IDB_CHUNK = 1
-    UPLAOD_IDB_END = 2
+    UPLOAD_IDB_END = 2
     UPLOAD_IDB_SUCCESS = 3
     UPLOAD_IDB_INVALID_SIZE = 4
     UPLOAD_IDB_INVALID_HASH = 5
@@ -162,7 +162,7 @@ def create_event_packet(event_type, *args, **kwargs):
     ))
 
 
-def wrap_event(self, event_packet):
+def wrap_event(event_packet):
     return RevetherPacket.build(dict(
         header=dict(
             type=PacketType.EVENT.value,

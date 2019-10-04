@@ -39,7 +39,8 @@ class Client(object):
             self.__sock.send(RevetherPacket.build(event))
 
     def get_packet(self):
-        return RevetherPacket.parse_stream(ClientSocket(self.__sock))
+        pkt = RevetherPacket.parse_stream(ClientSocket(self.__sock))
+        return int(pkt.header.type), pkt.body
 
     def close_connection(self):
         self.__sock.close()

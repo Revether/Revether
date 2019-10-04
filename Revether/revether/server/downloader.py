@@ -2,7 +2,7 @@ import io
 import hashlib
 
 from exceptions import FileHashMismatchError, FileSizeMismatchError
-from ..net.packet import RequestType
+from ..net.packets import RequestType
 
 
 class Downloader(object):
@@ -15,15 +15,26 @@ class Downloader(object):
 
         self.__size_downloaded = 0
         self.__data = io.BytesIO()
+
+        self.__chunks = 0
+
         self.finished = False
 
     def add_chunk(self, chunk_data):
         self.__data.write(chunk_data)
         self.__size_downloaded += len(chunk_data)
+        self.__chunks += 1
+        self.__logger.debug(
+            "Adding chunk #{} of size {}, client sent {}".format(
+                self.__chunks, len(chunk_data), self.__size_downloaded))
+
+        if self.__size_downloaded == self.file_size:
+            self.__logger.debug("Finished donwloading file, calling finish")
+            self.finish()
 
     def finish(self):
         self.__data.seek(0)
-        file_hash = hashlib.sha1(self.__data.read()).hexdigest()
+        file_hash = hashlib.sha1(self.__data.read()).digest()
         file_size = self.__data.tell()
 
         if self.file_size != file_size:
@@ -37,5 +48,5 @@ class Downloader(object):
                     self.file_hash, file_hash, RequestType.UPLOAD_IDB_INVALID_HASH))
 
         self.__data.seek(0)
-        with open(self.__local_file_path, 'wb') as f:
+        with open(self.local_file_path, 'wb') as f:
             f.write(self.__data.read())

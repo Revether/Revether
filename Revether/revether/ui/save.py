@@ -136,19 +136,29 @@ class PacketSender(QThread):
             idb_data_len = self._data_length
             idb_data_stream = self._data_stream
             SaveMenuActionHandler._update_progress(self._progress_bar, 0, idb_data_len / self._chunk_size)
-            time.sleep(0.2)
+
             self._plugin.logger.debug('starting to send packets')
             self._plugin.logger.debug('The amount of packets needed to be sent: {}'.format(idb_data_len / self._chunk_size))
-            for i in range(idb_data_len / self._chunk_size):
+
+            for i in range((idb_data_len / self._chunk_size)):
                 self._plugin.logger.debug('Current index: {}'.format(i))
+
                 current_pkt_data = idb_data_stream.read(self._chunk_size)
                 SaveMenuActionHandler._update_progress(self._progress_bar, i, idb_data_len / self._chunk_size)
-                time.sleep(0.01)
+
                 self._plugin.network_manager.send_request(
                     RequestType.UPLOAD_IDB_CHUNK,
                     data=current_pkt_data,
                     size=len(current_pkt_data)
                 )
+
+            # Send the last chunk
+            current_pkt_data = idb_data_stream.read()
+            self._plugin.network_manager.send_request(
+                RequestType.UPLOAD_IDB_CHUNK,
+                data=current_pkt_data,
+                size=len(current_pkt_data)
+            )
 
             self._plugin.logger.debug('finished sending packets')
 
