@@ -32,7 +32,14 @@ class PacketType(enum.Enum):
 
 
 class RequestType(enum.Enum):
-    UPLOAD_IDB = 0
+    UPLOAD_IDB_START = 0
+    UPLOAD_IDB_CHUNK = 1
+    UPLAOD_IDB_END = 2
+    UPLOAD_IDB_SUCCESS = 3
+    UPLOAD_IDB_INVALID_SIZE = 4
+    UPLOAD_IDB_INVALID_HASH = 5
+
+    DOWNLOAD_IDB = 6
 
 
 class DictAdapter(construct.Adapter):
@@ -113,6 +120,21 @@ EventPacket = construct.Struct(
             'extra' / DictAdapter(construct.PascalString(construct.Int16ub, 'utf-8'))
         ),
     })
+)
+
+RequestPacket = construct.Struct(
+    'request_type', / construct.Enum(construct.Int8ub, RequestType),
+    'data' / construct.Switch(lambda ctx: int(ctx.request_type), {
+        RequestType.UPLOAD_IDB_START.value: construct.Struct(
+            'idb_name' / construct.PascalString(construct.Int16ub, 'utf-8'),
+            'idb_hash' / construct.Bytes(SHA1_HASH_BYTES_LENGTH),
+            'idb_size' / construct.Int32ub
+        ),
+        RequestType.UPLOAD_IDB_CHUNK.value: construct.Struct(
+            'size' / construct.Int32ub,
+            'data' / construct.Bytes(construct.this.size)
+        )
+    }
 )
 
 RevetherPacket = construct.Struct(
