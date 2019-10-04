@@ -166,7 +166,7 @@ class IDBHooks(ida_idp.IDB_Hooks):
             EventType.OPTYPECHANGED,
             ea=ea,
             n=n,
-            op=op,
+            op=Unicoder.decode(op),
             extra=extra,
         )
         return 0
