@@ -99,13 +99,13 @@ class Events(object):
         if op == 'stkvar':
             ida_bytes.op_stkvar(ea, n)
         if op == 'enum':
-            enum_id = ida_enum.get_enum(Unicoder.encode(extra['ename']))
+            enum_id = ida_enum.get_enum(str(extra['ename']))
             ida_bytes.op_enum(ea, n, enum_id, extra['serial'])
         if op == 'struct':
             path_length = len(extra['spath'])
             path = ida_pro.tid_array(path_length)
             for i in range(path_length):
-                sname = Unicoder.encode(extra['spath'][i])
+                sname = str(extra['spath'][i])
                 path[i] = ida_struct.get_struc_id(sname)
             insn = ida_ua.insn_t()
             ida_ua.decode_insn(insn, ea)

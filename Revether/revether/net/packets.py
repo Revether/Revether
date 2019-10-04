@@ -2,6 +2,8 @@ import construct
 import enum
 import json
 
+from ..utils.unicoder import Unicoder
+
 LATEST_VERSION = 1
 SHA1_HASH_BYTES_LENGTH = 20
 
@@ -35,10 +37,10 @@ class RequestType(enum.Enum):
 
 class DictAdapter(construct.Adapter):
     def _decode(self, obj, context, path):
-        return json.loads(obj)
+        return json.loads(Unicoder.encode(obj))
 
     def _encode(self, obj, context, path):
-        return json.dumps(obj)
+        return Unicoder.decode(json.dumps(obj))
 
 
 ConnectionPacket = construct.Struct(
