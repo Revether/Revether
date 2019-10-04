@@ -1,5 +1,6 @@
 import construct
 import enum
+import json
 
 LATEST_VERSION = 1
 SHA1_HASH_BYTES_LENGTH = 20
@@ -17,6 +18,9 @@ class EventType(enum.Enum):
     FUNCTAILDELETED = 8
     TAILOWNERCHANGED = 9
     COMMENTCHANGED = 10
+    RANGECOMMENTCHANGED = 11
+    EXTRACOMMENTCHANGED = 12
+    OPTYPECHANGED = 13
 
 
 class PacketType(enum.Enum):
@@ -27,6 +31,14 @@ class PacketType(enum.Enum):
 
 class RequestType(enum.Enum):
     UPLOAD_IDB = 0
+
+
+class DictAdapter(construct.Adapter):
+    def _decode(self, obj, context, path):
+        return json.loads(obj)
+
+    def _encode(self, obj, context, path):
+        return json.dumps(obj)
 
 
 ConnectionPacket = construct.Struct(
@@ -81,6 +93,23 @@ EventPacket = construct.Struct(
             'comment' / construct.PascalString(construct.Int16ub, 'utf-8'),
             'repeatable' / construct.Flag
             ),
+        EventType.RANGECOMMENTCHANGED.value: construct.Struct(
+            'kind' / construct.Int32ub,
+            'start_ea' / construct.Int32ub,
+            'comment' / construct.PascalString(construct.Int16ub, 'utf-8'),
+            'repeatable' / construct.Flag
+        ),
+        EventType.EXTRACOMMENTCHANGED.value: construct.Struct(
+            'ea' / construct.Int32ub,
+            'line_idx' / construct.Int32ub,
+            'comment' / construct.PascalString(construct.Int16ub, 'utf-8')
+        ),
+        EventType.OPTYPECHANGED.value: construct.Struct(
+            'ea' / construct.Int32ub,
+            'n' / construct.Int32ub,
+            'op' / construct.PascalString(construct.Int16ub, 'utf-8'),
+            'extra' / DictAdapter  # This should be a dict
+        ),
     })
 )
 
