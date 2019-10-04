@@ -108,7 +108,7 @@ EventPacket = construct.Struct(
             'ea' / construct.Int32ub,
             'n' / construct.Int32ub,
             'op' / construct.PascalString(construct.Int16ub, 'utf-8'),
-            'extra' / DictAdapter  # This should be a dict
+            'extra' / DictAdapter(construct.PascalString(construct.Int16ub, 'utf-8'))
         ),
     })
 )
