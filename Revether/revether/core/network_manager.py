@@ -13,10 +13,10 @@ logger = logging.getLogger('RevetherLogger')
 
 
 class NetworkManager(object):
-    def __init__(self):
-        self._socket = socket.socket()
+    def __init__(self, plugin):
+        self._socket = None
         self._socket_manager = QtSocket(self._dispatch)
-        self._events = Events()
+        self._events = Events(plugin)
 
     @property
     def connected(self):
@@ -24,12 +24,13 @@ class NetworkManager(object):
 
     def send_event(self, event_type, *args, **kwargs):
         pkt = create_event_packet(event_type.value, *args, **kwargs)
-        logger.debug(pkt.encode('hex'))
         self._socket_manager.send_packet(pkt)
 
     def connect(self, ip, port):
         if self._socket_manager.connected:
             return
+
+        self._socket = socket.socket()
 
         self._socket.connect((ip, port))
         set_socket_keepalive(self._socket)
@@ -46,7 +47,6 @@ class NetworkManager(object):
 
     def disconnect(self):
         self._socket_manager.disconnect()
-        self._socket = socket.socket()
 
     def send(self, data):
         self._socket.send(data)
@@ -55,5 +55,5 @@ class NetworkManager(object):
         for pkt in incoming_pkts:
             # We have to remove the inernal _io that construct
             # is inserting into the gotten pkt from the parse_stream
-            del pkt.data['_io']
-            self._events.dispatch_event(pkt.event_type, **pkt.data)
+            del pkt.body.data['_io']
+            self._events.dispatch_event(pkt.body.event_type, **pkt.body.data)

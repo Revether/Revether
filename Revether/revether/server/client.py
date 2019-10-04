@@ -1,5 +1,5 @@
 import construct
-from ..net.packets import EventPacket, ConnectionPacket
+from ..net.packets import RevetherPacket
 
 
 class ClientSocket(object):
@@ -11,8 +11,9 @@ class ClientSocket(object):
 
 
 class Client(object):
-    def __init__(self, sock):
+    def __init__(self, sock, addr):
         self.__sock = sock
+        self.addr = addr
 
         self.idb_hash = None
         self.idb_name = None
@@ -31,11 +32,11 @@ class Client(object):
 
     def update_about_changes(self, events):
         for event in events:
-            self.__sock.send(EventPacket.build(event))
+            self.__sock.send(RevetherPacket.build(event))
 
     def get_event(self):
         try:
-            return EventPacket.parse_stream(ClientSocket(self.__sock))
+            return RevetherPacket.parse_stream(ClientSocket(self.__sock))
         except construct.ConstructError:
             raise EOFError
 
@@ -44,11 +45,14 @@ class Client(object):
 
     def handshake(self):
         try:
-            connection_packet = ConnectionPacket.parse_stream(ClientSocket(self.__sock))
+            connection_packet = RevetherPacket.parse_stream(ClientSocket(self.__sock))
         except construct.ConstructError:
             raise EOFError
 
-        self.__set_idb(connection_packet.idb_name, connection_packet.idb_hash)
+        self.__set_idb(
+            connection_packet.body.idb_name,
+            connection_packet.body.idb_hash
+        )
         self.ready = True
 
     def __set_idb(self, idb_name, idb_hash):

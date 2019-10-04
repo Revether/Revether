@@ -90,7 +90,7 @@ class RevetherServer(object):
                 Function is blocking, should be called after selected the server socket.
         """
         client_socket, client_addr = self.__server_socket.accept()
-        new_client = client.Client(client_socket)
+        new_client = client.Client(client_socket, client_addr)
         self.__logger.info("Accepted new client from {}".format(client_addr))
         self.__connected_clients.append(new_client)
 
@@ -119,12 +119,12 @@ class RevetherServer(object):
             try:
                 event = current_client.get_event()
             except EOFError:
-                self.__logger.error("Error while trying to get event from client"
+                self.__logger.error("Error while trying to get event from client\n"
                                     "Closing connection")
                 self.__close_connection_with_client(current_client)
                 continue
 
-            self.__logger.debug("Got event: {}".format(event))
+            self.__logger.debug("Got event from {}: {}".format(current_client.addr, event))
 
             # Save it to DB?
 
