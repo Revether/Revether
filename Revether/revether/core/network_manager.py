@@ -26,9 +26,9 @@ class NetworkManager(object):
         pkt = create_event_packet(event_type.value, *args, **kwargs)
         self._socket_manager.send_packet(pkt)
 
-    def send_request(self, request_type, *args, **kwargs):
+    def send_request(self, request_type, callback=None, *args, **kwargs):
         pkt = create_request_packet(request_type.value, *args, **kwargs)
-        self._socket_manager.send_packet(pkt)
+        self._socket_manager.send_packet(pkt, callback)
 
     def connect(self, ip, port):
         if self._socket_manager.connected:

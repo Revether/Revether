@@ -3,10 +3,10 @@ import ida_loader
 import io
 import hashlib
 import os
-import time
 
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
-from PyQt5.QtWidgets import QProgressDialog
+from functools import partial
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QProgressDialog, QMessageBox
 
 from ..utils.unicoder import Unicoder
 from ..net.packets import RequestType
@@ -55,6 +55,8 @@ class SaveMenuAction(object):
 
 class SaveMenuActionHandler(ida_kernwin.action_handler_t):
 
+    CHUNK_SIZE = 512
+
     @staticmethod
     def _update_progress(progress, count, total):
         """
@@ -94,13 +96,15 @@ class SaveMenuActionHandler(ida_kernwin.action_handler_t):
         )
         progress_bar.setCancelButton(None)  # Remove the cancel button so the user won't be able to cancel
         progress_bar.setModal(True)  # Set this as a modal dialog
-        # window_flags = progress_bar.windowFlags()  # Disable close button
-        # progress_bar.setWindowFlags(window_flags & ~Qt.WindowCloseButtonHint)
+        window_flags = progress_bar.windowFlags()  # Disable close button
+        progress_bar.setWindowFlags(window_flags & ~Qt.WindowCloseButtonHint)
         progress_bar.setWindowTitle('Upload to server')
 
         idb_data_len = len(idb_data)
         idb_data_stream = io.BytesIO(idb_data)
         idb_hash = hashlib.sha1(idb_data).digest()
+        total_packets = (idb_data_len / self.CHUNK_SIZE)
+        total_packets = total_packets + 1 if idb_data_len % self.CHUNK_SIZE != 0 else total_packets  # correction
         # Build the initiation packet here
         self._plugin.network_manager.send_request(
             RequestType.UPLOAD_IDB_START,
@@ -109,68 +113,34 @@ class SaveMenuActionHandler(ida_kernwin.action_handler_t):
             idb_size=idb_data_len,
         )
 
-        pkt_sender = PacketSender(idb_data_stream, idb_data_len, 4096, progress_bar, self._plugin)
-        self._plugin.logger.debug('starting the thread')
-        pkt_sender.start()
-        self._plugin.logger.debug('showing the progress bar')
-        self._update_progress(progress_bar, 0, 100)
-        progress_bar.show()
-        self._plugin.logger.debug('after the progress_bar.show')
-        while pkt_sender.isRunning():
-            self._plugin.logger.debug('in the loop')
-        self._plugin.logger.debug('After the loop')
-        pkt_sender.exit()
+        self._plugin.logger.debug('starting to send packets')
+        self._plugin.logger.debug('The amount of packets needed to be sent: {}'.format(total_packets))
 
+        for i in range(total_packets):
+            current_pkt_data = idb_data_stream.read(self.CHUNK_SIZE)
 
-class PacketSender(QThread):
-    def __init__(self, data_stream, data_length, chunk_size, progress_bar, plugin):
-        super(PacketSender, self).__init__()
-        self._data_stream = data_stream
-        self._data_length = data_length
-        self._chunk_size = chunk_size
-        self._progress_bar = progress_bar
-        self._plugin = plugin
-
-    def run(self):
-        try:
-            idb_data_len = self._data_length
-            idb_data_stream = self._data_stream
-            SaveMenuActionHandler._update_progress(self._progress_bar, 0, idb_data_len / self._chunk_size)
-
-            self._plugin.logger.debug('starting to send packets')
-            self._plugin.logger.debug('The amount of packets needed to be sent: {}'.format(idb_data_len / self._chunk_size))
-
-            for i in range((idb_data_len / self._chunk_size)):
-                self._plugin.logger.debug('Current index: {}'.format(i))
-
-                current_pkt_data = idb_data_stream.read(self._chunk_size)
-                SaveMenuActionHandler._update_progress(self._progress_bar, i, idb_data_len / self._chunk_size)
-
-                self._plugin.network_manager.send_request(
-                    RequestType.UPLOAD_IDB_CHUNK,
-                    data=current_pkt_data,
-                    size=len(current_pkt_data)
-                )
-
-            # Send the last chunk
-            current_pkt_data = idb_data_stream.read()
             self._plugin.network_manager.send_request(
                 RequestType.UPLOAD_IDB_CHUNK,
+                callback=partial(self._update_progress, progress_bar, i, total_packets),
                 data=current_pkt_data,
                 size=len(current_pkt_data)
             )
 
-            self._plugin.logger.debug('finished sending packets')
+        self._plugin.logger.debug('finished sending packets')
+        self._plugin.logger.debug('sending upload_end')
 
-            self._plugin.logger.debug('sending upload_end')
-            self._plugin.network_manager.send_request(
-                RequestType.UPLAOD_IDB_END
-            )
+        def _close_window(progress_bar):
+            progress_bar.close()
+            success = QMessageBox()
+            success.setIcon(QMessageBox.Information)
+            success.setStandardButtons(QMessageBox.Ok)
+            success.setText("IDB successfully uploaded!")
+            success.setWindowTitle("Upload to server")
+            success.exec_()
 
-            self._plugin.logger.debug('closing progress bar')
-            self._progress_bar.setWindowTitle('Done!')
-            self._progress_bar.close()
+        self._plugin.network_manager.send_request(
+            RequestType.UPLDAD_IDB_END,
+            callback=partial(_close_window, progress_bar)
+        )
 
-        except Exception as e:
-            self._plugin.logger.debug(e)
-            self._plugin.logger.debug(e.message)
+        progress_bar.show()

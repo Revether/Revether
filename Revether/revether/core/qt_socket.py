@@ -101,8 +101,9 @@ class QtSocket(QObject):
         if self._incoming:
             QCoreApplication.instance().postEvent(self, SocketEvent())
 
-    def send_packet(self, pkt):
-        self._outgoing.append(pkt)
+    def send_packet(self, pkt, callback=None):
+        item = (pkt, callback)
+        self._outgoing.append(item)
 
     def _handle_send_ready(self):
         if not self.connected:
@@ -111,15 +112,16 @@ class QtSocket(QObject):
         if not self._outgoing:
             return
 
-        pkt = self._outgoing.pop(0)
+        pkt, callback = self._outgoing.pop(0)
 
         try:
             logger.debug('Sending: {}'.format(RevetherPacket.parse(pkt)))
             logger.debug('sent length: {}'.format(self._socket.send(pkt)))
+            if callback:
+                callback()
         except socket.error as e:
             logger.error(e)
             return
-        time.sleep(0.01)
 
     def event(self, event):
         """
