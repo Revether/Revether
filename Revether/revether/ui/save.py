@@ -55,7 +55,7 @@ class SaveMenuAction(object):
 
 class SaveMenuActionHandler(ida_kernwin.action_handler_t):
 
-    CHUNK_SIZE = 512
+    CHUNK_SIZE = 8192
 
     @staticmethod
     def _update_progress(progress, count, total):
@@ -116,12 +116,22 @@ class SaveMenuActionHandler(ida_kernwin.action_handler_t):
         self._plugin.logger.debug('starting to send packets')
         self._plugin.logger.debug('The amount of packets needed to be sent: {}'.format(total_packets))
 
+        def _on_error(progress_bar):
+            progress_bar.close()
+            success = QMessageBox()
+            success.setIcon(QMessageBox.Critical)
+            success.setStandardButtons(QMessageBox.Ok)
+            success.setText("Could not upload IDB")
+            success.setWindowTitle("Upload to server FAILED")
+            success.exec_()
+
         for i in range(total_packets):
             current_pkt_data = idb_data_stream.read(self.CHUNK_SIZE)
 
             self._plugin.network_manager.send_request(
                 RequestType.UPLOAD_IDB_CHUNK,
                 callback=partial(self._update_progress, progress_bar, i, total_packets),
+                err_callback=partial(_on_error, progress_bar),
                 data=current_pkt_data,
                 size=len(current_pkt_data)
             )
@@ -130,6 +140,7 @@ class SaveMenuActionHandler(ida_kernwin.action_handler_t):
         self._plugin.logger.debug('sending upload_end')
 
         def _close_window(progress_bar):
+            SaveMenuActionHandler._update_progress(progress_bar, 100, 100)
             progress_bar.close()
             success = QMessageBox()
             success.setIcon(QMessageBox.Information)
@@ -139,7 +150,7 @@ class SaveMenuActionHandler(ida_kernwin.action_handler_t):
             success.exec_()
 
         self._plugin.network_manager.send_request(
-            RequestType.UPLDAD_IDB_END,
+            RequestType.UPLOAD_IDB_END,
             callback=partial(_close_window, progress_bar)
         )
 
