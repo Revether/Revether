@@ -211,10 +211,13 @@ class RevetherServer(object):
             data (dict): The body of the packet
         """
         request_type = int(data.request_type)
-        del data.data['_io']
 
         try:
-            self.__requests_manager.dispatch_request_handler(current_client, request_type, **data.data)
+            if data.data:
+                del data.data['_io']
+                self.__requests_manager.dispatch_request_handler(current_client, request_type, **data.data)
+            else:
+                self.__requests_manager.dispatch_request_handler(current_client, request_type)
         except RevetherServerErrorWithCode as e:
             # Update the client about the failure
             current_client.send_pkt(create_request_packet(e.code))

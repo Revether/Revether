@@ -1,5 +1,6 @@
 import construct
 from ..net.packets import RevetherPacket
+from ..utils.net import recvall
 
 
 class ClientSocket(object):
@@ -7,7 +8,7 @@ class ClientSocket(object):
         self.__sock = sock
 
     def read(self, size):
-        return self.__sock.recv(size)
+        return recvall(self.__sock, size)
 
 
 class Client(object):

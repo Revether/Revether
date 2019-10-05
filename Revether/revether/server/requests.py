@@ -62,6 +62,8 @@ class Requests(object):
 
     # @validate_downloader()
     def __handle_upload_idb_end(self, client):
+        self.__logger.info("Finished downloading {} from client {}".format(client.downloader.file_name, client.addr))
+
         try:
             client.downloader.finish()
         except (FileSizeMismatchError, FileHashMismatchError) as e:
@@ -69,5 +71,3 @@ class Requests(object):
             raise
         finally:
             client.downloader = None
-
-        self.__logger.info("Finished downloading {} from client {}".format(client.downloader.file_name, client.addr))

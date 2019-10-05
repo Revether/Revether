@@ -28,9 +28,9 @@ class Downloader(object):
             "Adding chunk #{} of size {}, client sent {}".format(
                 self.__chunks, len(chunk_data), self.__size_downloaded))
 
-        if self.__size_downloaded == self.file_size:
-            self.__logger.debug("Finished donwloading file, calling finish")
-            self.finish()
+        # if self.__size_downloaded == self.file_size:
+        #    self.__logger.debug("Finished donwloading file, calling finish")
+        #    self.finish()
 
     def finish(self):
         self.__data.seek(0)
