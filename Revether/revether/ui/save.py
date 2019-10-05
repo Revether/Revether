@@ -133,7 +133,6 @@ class SaveMenuActionHandler(ida_kernwin.action_handler_t):
                 callback=partial(self._update_progress, progress_bar, i, total_packets),
                 err_callback=partial(_on_error, progress_bar),
                 data=current_pkt_data,
-                size=len(current_pkt_data)
             )
 
         self._plugin.logger.debug('finished sending packets')

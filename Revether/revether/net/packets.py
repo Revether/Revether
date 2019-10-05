@@ -131,8 +131,7 @@ RequestPacket = construct.Struct(
             'idb_size' / construct.Int32ub
         ),
         RequestType.UPLOAD_IDB_CHUNK.value: construct.Struct(
-            'size' / construct.Int32ub,
-            'data' / construct.Bytes(construct.this.size)
+            'data' / construct.Prefixed(construct.VarInt, construct.Compressed(construct.GreedyBytes, 'zlib'))
         )
     })
 )
