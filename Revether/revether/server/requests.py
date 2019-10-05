@@ -1,5 +1,4 @@
 import functools
-import os
 
 import downloader
 
@@ -57,7 +56,7 @@ class Requests(object):
         client.downloader = downloader.Downloader(self.__logger, local_file_path, idb_name, idb_hash, idb_size)
 
     # @validate_downloader()
-    def __handle_upload_idb_chunk(self, client, data, size):
+    def __handle_upload_idb_chunk(self, client, data):
         client.downloader.add_chunk(data)
 
     # @validate_downloader()
