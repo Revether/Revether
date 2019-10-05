@@ -6,10 +6,6 @@ from PyQt5.QtCore import QObject, QSocketNotifier, QEvent, QCoreApplication
 import construct
 
 
-import logging
-logger = logging.getLogger('RevetherLogger')
-
-
 class SocketEvent(QEvent):
     """
         This Event is being sent when a new socket event is happening,
@@ -100,21 +96,27 @@ class QtSocket(QObject):
         if self._incoming:
             QCoreApplication.instance().postEvent(self, SocketEvent())
 
-    def send_packet(self, pkt):
-        self._outgoing.append(pkt)
+    def send_packet(self, pkt, callback=None, err_callback=None):
+        item = (pkt, callback, err_callback)
+        self._outgoing.append(item)
 
     def _handle_send_ready(self):
         if not self.connected:
             return
 
-        for pkt in self._outgoing:
-            try:
-                logger.debug('Sending: {}'.format(RevetherPacket.parse(pkt)))
-                logger.debug('sent length: {}'.format(self._socket.send(pkt)))
-            except socket.error as e:
-                self._logger.error(e)
-                return
-        self._outgoing = []
+        if not self._outgoing:
+            return
+
+        pkt, callback, err_callback = self._outgoing.pop(0)
+
+        try:
+            self._socket.send(pkt)
+            if callback:
+                callback()
+        except socket.error:
+            if err_callback:
+                err_callback()
+            return
 
     def event(self, event):
         """

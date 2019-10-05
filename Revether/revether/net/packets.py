@@ -32,7 +32,14 @@ class PacketType(enum.Enum):
 
 
 class RequestType(enum.Enum):
-    UPLOAD_IDB = 0
+    UPLOAD_IDB_START = 0
+    UPLOAD_IDB_CHUNK = 1
+    UPLOAD_IDB_END = 2
+    UPLOAD_IDB_SUCCESS = 3
+    UPLOAD_IDB_INVALID_SIZE = 4
+    UPLOAD_IDB_INVALID_HASH = 5
+
+    DOWNLOAD_IDB = 6
 
 
 class DictAdapter(construct.Adapter):
@@ -115,6 +122,20 @@ EventPacket = construct.Struct(
     })
 )
 
+RequestPacket = construct.Struct(
+    'request_type' / construct.Enum(construct.Int8ub, RequestType),
+    'data' / construct.Switch(lambda ctx: int(ctx.request_type), {
+        RequestType.UPLOAD_IDB_START.value: construct.Struct(
+            'idb_name' / construct.PascalString(construct.Int16ub, 'utf-8'),
+            'idb_hash' / construct.Bytes(SHA1_HASH_BYTES_LENGTH),
+            'idb_size' / construct.Int32ub
+        ),
+        RequestType.UPLOAD_IDB_CHUNK.value: construct.Struct(
+            'data' / construct.Prefixed(construct.VarInt, construct.Compressed(construct.GreedyBytes, 'zlib'))
+        )
+    })
+)
+
 RevetherPacket = construct.Struct(
     'header' / construct.Struct(
         'version' / construct.Const(LATEST_VERSION, construct.Int8ub),
@@ -122,7 +143,8 @@ RevetherPacket = construct.Struct(
     ),
     'body' / construct.Switch(lambda ctx: int(ctx.header.type), {
         PacketType.EVENT.value: EventPacket,
-        PacketType.CONNECTION.value: ConnectionPacket
+        PacketType.CONNECTION.value: ConnectionPacket,
+        PacketType.REQUEST.value: RequestPacket
     })
 )
 
@@ -139,6 +161,15 @@ def create_event_packet(event_type, *args, **kwargs):
     ))
 
 
+def wrap_event(event_packet):
+    return RevetherPacket.build(dict(
+        header=dict(
+            type=PacketType.EVENT.value,
+        ),
+        body=event_packet
+    ))
+
+
 def create_connection_packet(idb_name, idb_hash):
     return RevetherPacket.build(dict(
         header=dict(
@@ -147,5 +178,17 @@ def create_connection_packet(idb_name, idb_hash):
         body=dict(
             idb_name=idb_name,
             idb_hash=idb_hash
+        )
+    ))
+
+
+def create_request_packet(request_type, *args, **kwargs):
+    return RevetherPacket.build(dict(
+        header=dict(
+            type=PacketType.REQUEST.value
+        ),
+        body=dict(
+            request_type=request_type,
+            data=dict(**kwargs)
         )
     ))
