@@ -55,7 +55,7 @@ class SaveMenuAction(object):
 
 class SaveMenuActionHandler(ida_kernwin.action_handler_t):
 
-    CHUNK_SIZE = 8192
+    CHUNK_SIZE = 16384
 
     @staticmethod
     def _update_progress(progress, count, total):

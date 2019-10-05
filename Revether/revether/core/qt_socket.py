@@ -5,8 +5,6 @@ from ..net.packets import RevetherPacket
 from PyQt5.QtCore import QObject, QSocketNotifier, QEvent, QCoreApplication
 import construct
 
-import time
-
 
 class SocketEvent(QEvent):
     """
@@ -115,7 +113,7 @@ class QtSocket(QObject):
             self._socket.send(pkt)
             if callback:
                 callback()
-        except socket.error as e:
+        except socket.error:
             if err_callback:
                 err_callback()
             return
