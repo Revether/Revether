@@ -21,6 +21,13 @@ class Downloader(object):
         self.finished = False
 
     def add_chunk(self, chunk_data):
+        """
+        Add chunk of data to the final file.
+        Usually call this funcion when a new chunk arrived from the socket
+
+        Args:
+            chunk_data (str): The chunk
+        """
         self.__data.write(chunk_data)
         self.__size_downloaded += len(chunk_data)
         self.__chunks += 1
@@ -29,6 +36,13 @@ class Downloader(object):
                 self.__chunks, len(chunk_data), self.__size_downloaded))
 
     def finish(self):
+        """
+        Finish the file download. Validates the size and the hash of the file.
+        Also saves it to the local_file_path passed on the init
+
+        Note:
+            Can throw FileSizeMismatchError or FileHashMismatchError
+        """
         self.__data.seek(0)
         file_hash = hashlib.sha1(self.__data.read()).digest()
         file_size = self.__data.tell()

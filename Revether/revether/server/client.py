@@ -26,6 +26,8 @@ class Client(object):
         # The client is uploading to the server
         self.downloader = None
 
+        self.jobs = []
+
     def fileno(self):
         return self.__sock.fileno()
 
