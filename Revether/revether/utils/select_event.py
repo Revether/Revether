@@ -34,5 +34,8 @@ class SelectableEvent(object):
         return False
 
     def clear(self):
+        if not self.is_set:
+            return
+
         with self.__lock:
             self.__read_end.read(1)
