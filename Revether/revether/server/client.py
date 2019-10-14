@@ -1,4 +1,5 @@
 import construct
+import job
 from ..net.packets import RevetherPacket
 from ..utils.net import recvall
 
@@ -22,7 +23,7 @@ class Client(object):
         # The client and server handshaked
         self.ready = False
 
-        # Used to **download** files form the client.
+        # Used to **download** files from the client.
         # The client is uploading to the server
         self.downloader = None
 
@@ -30,6 +31,10 @@ class Client(object):
 
     def fileno(self):
         return self.__sock.fileno()
+
+    @property
+    def socket(self):
+        return self.__sock
 
     def set_idb_hash(self, idb_hash):
         self.idb_hash = idb_hash
@@ -66,3 +71,9 @@ class Client(object):
 
     def send_pkt(self, pkt):
         self.__sock.send(pkt)
+
+    def add_job(self, client_job):
+        # Check that the passed job is valid
+        assert isinstance(client_job, job.Job)
+        self.jobs.append(client_job)
+        client_job.start()

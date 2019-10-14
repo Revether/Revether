@@ -5,6 +5,7 @@ import threading
 
 import client
 import requests
+import job
 
 from ..utils.select_event import SelectableEvent
 from ..net.packets import PacketType, wrap_event, create_request_packet
@@ -40,6 +41,7 @@ class RevetherServer(object):
                           When False, new thread will be created.
         """
         self.__logger.info("Starting the server on {}:{}".format(self.host, self.port))
+        self.__server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.__server_socket.bind((self.host, self.port))
         self.__server_socket.listen(RevetherServer.LISTEN_BACKLOG)
 
@@ -74,15 +76,26 @@ class RevetherServer(object):
         Main server loop. Handles incoming events from clients.
         Also responsible for handshake with clients.
         """
+        events = [self.__stop_event] + self.__get_clients_jobs()
+        sockets = [self.__server_socket] + self.__connected_clients
         while True:
             read_ready, _, _ = select.select(
-                [self.__server_socket, self.__stop_event] + self.__connected_clients,
+                events + sockets,
                 [],
                 []
             )
 
             if self.__stop_event in read_ready:
                 break
+
+            # Handle done jobs
+            jobs = []
+            for finished_job in read_ready:
+                if not isinstance(finished_job, job.Job):
+                    jobs.append(finished_job)
+                    read_ready.remove(finished_job)
+
+            self.__finish_jobs(jobs)
 
             # Accept new client that connects to the server
             if self.__server_socket in read_ready:
@@ -221,3 +234,26 @@ class RevetherServer(object):
         except RevetherServerErrorWithCode as e:
             # Update the client about the failure
             current_client.send_pkt(create_request_packet(e.code))
+
+    def __finish_jobs(self, jobs):
+        for current_job in jobs:
+            self.__logger.info("Job of type {} finished. Joining.".format(type(current_job)))
+            try:
+                current_job.finish()
+            except Exception as e:
+                if isinstance(current_job, job.ClientJob):
+                    self.__logger.info(
+                        "Job #{} finished with an exception. The job is a client job, "
+                        "closing connection with the client".format(current_job.id))
+                    self.__close_connection_with_client(current_job.client)
+                else:
+                    self.__logger.error("Job #{} finished with an exception".format(current_job.id))
+
+                self.__logger.exception(e)
+
+    def __get_clients_jobs(self):
+        jobs = []
+        for current_client in self.__connected_clients:
+            jobs.extend(current_client.jobs)
+
+        return jobs
