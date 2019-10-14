@@ -33,13 +33,17 @@ class PacketType(enum.Enum):
 
 class RequestType(enum.Enum):
     UPLOAD_IDB_START = 0
-    UPLOAD_IDB_CHUNK = 1
-    UPLOAD_IDB_END = 2
-    UPLOAD_IDB_SUCCESS = 3
-    UPLOAD_IDB_INVALID_SIZE = 4
-    UPLOAD_IDB_INVALID_HASH = 5
+    DOWNLOAD_IDB_START = 1
 
-    DOWNLOAD_IDB = 6
+    IDB_CHUNK = 2
+    IDB_END = 3
+
+    UPLOAD_IDB_SUCCESS = 4
+    UPLOAD_IDB_INVALID_SIZE = 5
+    UPLOAD_IDB_INVALID_HASH = 6
+
+    GET_ALL_IDBS = 7
+    GET_ALL_IDBS_RESPONSE = 8
 
 
 class DictAdapter(construct.Adapter):
@@ -130,8 +134,17 @@ RequestPacket = construct.Struct(
             'idb_hash' / construct.Bytes(SHA1_HASH_BYTES_LENGTH),
             'idb_size' / construct.Int32ub
         ),
-        RequestType.UPLOAD_IDB_CHUNK.value: construct.Struct(
+        RequestType.IDB_CHUNK.value: construct.Struct(
             'data' / construct.Prefixed(construct.VarInt, construct.Compressed(construct.GreedyBytes, 'zlib'))
+        ),
+        RequestType.DOWNLOAD_IDB_START.value: construct.Struct(
+            'idb_name' / construct.PascalString(construct.Int16ub, 'utf-8')
+        ),
+        RequestType.GET_ALL_IDBS_RESPONSE.value: construct.GreedyRange(
+            construct.Struct(
+                "name" / construct.PascalString(construct.VarInt, "utf-8"),
+                "size" / construct.Int32ub
+            )
         )
     })
 )

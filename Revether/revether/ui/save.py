@@ -129,7 +129,7 @@ class SaveMenuActionHandler(ida_kernwin.action_handler_t):
             current_pkt_data = idb_data_stream.read(self.CHUNK_SIZE)
 
             self._plugin.network_manager.send_request(
-                RequestType.UPLOAD_IDB_CHUNK,
+                RequestType.IDB_CHUNK,
                 callback=partial(self._update_progress, progress_bar, i, total_packets),
                 err_callback=partial(_on_error, progress_bar),
                 data=current_pkt_data,
@@ -149,7 +149,7 @@ class SaveMenuActionHandler(ida_kernwin.action_handler_t):
             success.exec_()
 
         self._plugin.network_manager.send_request(
-            RequestType.UPLOAD_IDB_END,
+            RequestType.IDB_END,
             callback=partial(_close_window, progress_bar)
         )
 
