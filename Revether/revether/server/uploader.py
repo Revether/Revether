@@ -5,18 +5,18 @@ import job
 class Uploader(job.ClientJob):
     CHUNK_SIZE = 16384
 
-    def __init__(self, logger, sock, file_path, chunk_size=CHUNK_SIZE):
+    def __init__(self, logger, client, sock, file_path, chunk_size=CHUNK_SIZE):
         self.__sock = sock
         self.__chunk_size = chunk_size
         self.file_path = file_path
 
-        super(Uploader, self).__init__(logger)
+        super(Uploader, self).__init__(logger, client)
 
     def __upload(self, file):
         self.__logger.debug("Stating to upload file {}".format(self.file_path))
         while True:
-            read_ready, write_ready, _ = select.select([self.event], [self.__sock], [])
-            if self.event in read_ready:
+            read_ready, write_ready, _ = select.select([self.stop_event], [self.__sock], [])
+            if self.stop_event in read_ready:
                 break
 
             if self.__sock in write_ready:
