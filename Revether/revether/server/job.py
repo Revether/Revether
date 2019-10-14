@@ -29,7 +29,7 @@ class Job(object):
         On Exception, also sets the `done_event` event and sets `__exception` with the exception.
         """
         try:
-            self.job(*args, **kwargs)
+            self.return_value = self.job(*args, **kwargs)
         except Exception as e:
             self.__exception = e
         finally:
