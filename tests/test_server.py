@@ -18,7 +18,6 @@ IDB_UPLOAD_SIZE = 5 * 1024 * 1024
 IDB_UPLOAD_CHUNK_SIZE = 16384
 
 
-
 @contextlib.contextmanager
 def revether_client(idb_name):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
@@ -101,8 +100,7 @@ def test_server_upload_idb(revether_server):
         with open(file_name, 'rb') as f:
             recv_data = f.read()
 
+        os.remove(file_name)
+
         assert len(recv_data) == IDB_UPLOAD_SIZE
         assert hashlib.sha1(recv_data).digest() == send_hash
-
-        # Cleanup
-        os.remove(file_name)
