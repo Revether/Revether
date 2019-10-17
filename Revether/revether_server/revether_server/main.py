@@ -1,8 +1,8 @@
 import click
 import logging
 
-from revether import logger
-from revether.server import server
+from revether_common import logger
+from revether_server.server import RevetherServer
 
 
 @click.command()
@@ -10,7 +10,7 @@ from revether.server import server
 @click.option('--port', default='5565', help='Port to listen on')
 def main(host, port):
     server_logger = logger.initiate_logger(None, __name__, logging.DEBUG)
-    with server.RevetherServer(server_logger, host, int(port)):
+    with RevetherServer(server_logger, host, int(port)):
         pass
 
 

@@ -2,7 +2,7 @@ import construct
 import enum
 import json
 
-from ..utils.unicoder import Unicoder
+from revether_common.utils.unicoder import Unicoder
 
 LATEST_VERSION = 1
 SHA1_HASH_BYTES_LENGTH = 20

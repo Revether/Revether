@@ -1,5 +1,5 @@
 import threading
-from ..utils.select_event import SelectableEvent
+from revether_common.utils.select_event import SelectableEvent
 
 
 class Job(object):

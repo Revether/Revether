@@ -10,7 +10,7 @@ import ida_funcs
 import ida_ua
 import ida_kernwin
 
-from ..utils.unicoder import Unicoder
+from revether_common.utils.unicoder import Unicoder
 
 import logging
 logger = logging.getLogger('RevetherLogger')

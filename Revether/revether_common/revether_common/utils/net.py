@@ -44,5 +44,7 @@ def recvall(sock, size):
     data = ""
     while len(data) < size:
         data += sock.recv(size - len(data))
+        if not data:
+            raise socket.error
 
     return data

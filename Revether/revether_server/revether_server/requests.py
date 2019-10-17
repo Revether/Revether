@@ -5,7 +5,7 @@ import downloader
 import uploader
 
 from exceptions import FileHashMismatchError, FileSizeMismatchError
-from ..net.packets import RequestType, create_request_packet
+from revether_common.net.packets import RequestType, create_request_packet
 
 
 def parametrized(dec):

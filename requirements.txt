@@ -2,3 +2,7 @@ flake8
 construct==2.9.45
 click==6.7
 enum34==1.1.6
+pytest
+
+-e Revether/revether_server/
+-e Revether/revether_common/

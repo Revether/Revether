@@ -8,8 +8,8 @@ from functools import partial
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QProgressDialog, QMessageBox
 
-from ..utils.unicoder import Unicoder
-from ..net.packets import RequestType
+from revether_common.utils.unicoder import Unicoder
+from revether_common.net.packets import RequestType
 
 
 class SaveMenuAction(object):

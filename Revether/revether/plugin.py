@@ -1,8 +1,3 @@
-from .logger import initiate_logger
-from .ui.ui import Ui
-from .core.network_manager import NetworkManager
-from .core.core import Core
-
 import platform
 import logging
 import json
@@ -11,6 +6,11 @@ from datetime import datetime
 
 import ida_kernwin
 import ida_idaapi
+
+from .logger import initiate_logger
+from .ui.ui import Ui
+from .core.network_manager import NetworkManager
+from .core.core import Core
 
 
 class Plugin(ida_idaapi.plugin_t):

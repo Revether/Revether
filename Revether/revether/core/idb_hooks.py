@@ -5,8 +5,8 @@ import ida_bytes
 import ida_enum
 import ida_struct
 
-from ..net.packets import EventType
-from ..utils.unicoder import Unicoder
+from revether_common.net.packets import EventType
+from revether_common.utils.unicoder import Unicoder
 
 logger = logging.getLogger('RevetherLogger')
 

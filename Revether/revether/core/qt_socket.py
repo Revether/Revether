@@ -1,9 +1,8 @@
+import construct
 import socket
 
-from ..net.packets import RevetherPacket
-
 from PyQt5.QtCore import QObject, QSocketNotifier, QEvent, QCoreApplication
-import construct
+from revether_common.net.packets import RevetherPacket
 
 
 class SocketEvent(QEvent):
@@ -12,7 +11,7 @@ class SocketEvent(QEvent):
         for instance, when an incoming packet has arrived
     """
 
-    EVENT_TYPE = QEvent.Type(QEvent.registerEventType())
+    EVENT_TYPE = QEvent.Type(QEvent.    EventType())
 
     def __init__(self):
         super(SocketEvent, self).__init__(SocketEvent.EVENT_TYPE)

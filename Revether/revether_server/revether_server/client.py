@@ -1,7 +1,7 @@
 import construct
 import job
-from ..net.packets import RevetherPacket
-from ..utils.net import recvall
+from revether_common.net.packets import RevetherPacket
+from revether_common.utils.net import recvall
 
 
 class ClientSocket(object):
@@ -44,7 +44,7 @@ class Client(object):
 
     def update_about_changes(self, events):
         for event in events:
-            self.__sock.send(RevetherPacket.build(event))
+            self.__sock.send(event)
 
     def get_packet(self):
         pkt = RevetherPacket.parse_stream(ClientSocket(self.__sock))

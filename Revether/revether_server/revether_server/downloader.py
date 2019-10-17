@@ -2,7 +2,7 @@ import io
 import hashlib
 
 from exceptions import FileHashMismatchError, FileSizeMismatchError
-from ..net.packets import RequestType
+from revether_common.net.packets import RequestType
 
 
 class Downloader(object):

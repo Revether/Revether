@@ -7,8 +7,8 @@ import client
 import requests
 import job
 
-from ..utils.select_event import SelectableEvent
-from ..net.packets import PacketType, wrap_event, create_request_packet
+from revether_common.utils.select_event import SelectableEvent
+from revether_common.net.packets import PacketType, wrap_event, create_request_packet
 from exceptions import RevetherServerErrorWithCode
 
 
@@ -31,6 +31,10 @@ class RevetherServer(object):
             PacketType.EVENT.value: self.__handle_pkt_event,
             PacketType.REQUEST.value: self.__handle_pkt_request,
         }
+
+    @property
+    def clients(self):
+        return self.__connected_clients
 
     def start(self, block=False):
         """
@@ -57,6 +61,7 @@ class RevetherServer(object):
         If the server started with block=False, it will also kill the thread.
         All connections with the client will be closed.
         """
+        self.__logger.info("Stopping server.")
         self.__stop_event.set()
 
         if self.__server_thread:
@@ -76,9 +81,10 @@ class RevetherServer(object):
         Main server loop. Handles incoming events from clients.
         Also responsible for handshake with clients.
         """
-        events = [self.__stop_event] + self.__get_clients_jobs()
-        sockets = [self.__server_socket] + self.__connected_clients
         while True:
+            events = [self.__stop_event] + self.__get_clients_jobs()
+            sockets = [self.__server_socket] + self.__connected_clients
+
             read_ready, _, _ = select.select(
                 events + sockets,
                 [],
@@ -88,21 +94,21 @@ class RevetherServer(object):
             if self.__stop_event in read_ready:
                 break
 
-            # Handle done jobs
-            jobs = []
-            for finished_job in read_ready:
-                if not isinstance(finished_job, job.Job):
-                    jobs.append(finished_job)
-                    read_ready.remove(finished_job)
-
-            self.__finish_jobs(jobs)
-
             # Accept new client that connects to the server
             if self.__server_socket in read_ready:
                 self.__accept_new_client()
                 read_ready.remove(self.__server_socket)
 
             self.__handle_ready_clients(read_ready)
+
+            # Handle done jobs
+            jobs = []
+            for finished_job in read_ready:
+                if isinstance(finished_job, job.Job):
+                    jobs.append(finished_job)
+                    read_ready.remove(finished_job)
+
+            self.__finish_jobs(jobs)
 
     def __accept_new_client(self):
         """
@@ -161,6 +167,7 @@ class RevetherServer(object):
         except KeyError:
             self.__logger.error("Got an invalid packet type from client: {}".format(pkt_type))
         except Exception as e:
+            self.__logger.exception(e)
             self.__logger.error("General exception occurred while handling packet: {}".format(e))
 
     def __close_connection_with_client(self, current_client):
@@ -213,6 +220,8 @@ class RevetherServer(object):
 
         # TODO: Save the event to the DB
 
+        print data
+        print wrap_event(data).encode('hex')
         self.__broadcast_events(current_client, [wrap_event(data)])
 
     def __handle_pkt_request(self, current_client, data):

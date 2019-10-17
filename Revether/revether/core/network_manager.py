@@ -1,14 +1,14 @@
-from ..utils.net import set_socket_keepalive
-from ..net.packets import create_connection_packet, create_event_packet, create_request_packet
-from qt_socket import QtSocket
-from events import Events
-
 import socket
 import os
+import logging
 
 import idc
 
-import logging
+from qt_socket import QtSocket
+from events import Events
+from revether_common.utils.net import set_socket_keepalive
+from revether_common.net.packets import create_connection_packet, create_event_packet, create_request_packet
+
 logger = logging.getLogger('RevetherLogger')
 
 
