@@ -34,6 +34,10 @@ def validate_downloader(func, exists=True):
 class Requests(object):
     def __init__(self, logger):
         self.__logger = logger
+
+        # TODO: Make the path and name configurable
+        # TODO: We need a global config for the server.
+        # TODO: And functions that do it auto: get_idbs_dir and stuff
         self.__idbs_path = "/mnt/c/Revether/idbs/"
 
         self.__requests_handlers = {
