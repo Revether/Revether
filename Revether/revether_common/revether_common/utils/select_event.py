@@ -18,7 +18,7 @@ class SelectableEvent(object):
         return self.wait(0)
 
     def wait(self, timeout=None):
-        read_ready, _, _ = select.select([self.__read_fd2], [], [], timeout)
+        read_ready, _, _ = select.select([self.__read_fd], [], [], timeout)
         if read_ready:
             return True
 
