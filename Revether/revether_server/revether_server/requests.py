@@ -45,8 +45,8 @@ class Requests(object):
             RequestType.IDB_CHUNK.value: self.__handle_upload_idb_chunk,
             RequestType.IDB_END.value: self.__handle_upload_idb_end,
 
-            RequestType.GET_ALL_IDBS: self.__handle_get_all_idbs,
-            RequestType.DOWNLOAD_IDB_START: self.__handle_download_idb_start,
+            RequestType.GET_ALL_IDBS.value: self.__handle_get_all_idbs,
+            RequestType.DOWNLOAD_IDB_START.value: self.__handle_download_idb_start,
         }
 
     def dispatch_request_handler(self, client, request_type, *args, **kwargs):
