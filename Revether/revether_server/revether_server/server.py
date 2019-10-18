@@ -94,13 +94,6 @@ class RevetherServer(object):
             if self.__stop_event in read_ready:
                 break
 
-            # Accept new client that connects to the server
-            if self.__server_socket in read_ready:
-                self.__accept_new_client()
-                read_ready.remove(self.__server_socket)
-
-            self.__handle_ready_clients(read_ready)
-
             # Handle done jobs
             jobs = []
             for finished_job in read_ready:
@@ -109,6 +102,15 @@ class RevetherServer(object):
                     read_ready.remove(finished_job)
 
             self.__finish_jobs(jobs)
+
+            ready_clients = [client for client in read_ready if client not in jobs]
+
+            # Accept new client that connects to the server
+            if self.__server_socket in ready_clients:
+                self.__accept_new_client()
+                ready_clients.remove(self.__server_socket)
+
+            self.__handle_ready_clients(ready_clients)
 
     def __accept_new_client(self):
         """
