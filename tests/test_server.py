@@ -104,3 +104,37 @@ def test_server_upload_idb(revether_server):
 
         assert len(recv_data) == IDB_UPLOAD_SIZE
         assert hashlib.sha1(recv_data).digest() == send_hash
+
+
+def test_server_download_idb(revether_server):
+    with revether_client(DUMMY_IDB_NAME) as client:
+        wait_for(lambda: len(revether_server.clients) == 1, 5)
+
+        with open("/dev/urandom", 'rb') as f:
+            dummy_idb_data = f.read(IDB_UPLOAD_SIZE)
+
+        dummy_idb_path = "/mnt/c/Revether/idbs/{}".format(DUMMY_IDB_NAME)
+        with open(dummy_idb_path, 'wb') as f:
+            f.write(dummy_idb_data)
+
+        client.send_pkt(create_request_packet(
+            RequestType.DOWNLOAD_IDB_START.value,
+            idb_name=DUMMY_IDB_NAME
+        ))
+
+        recvd_size = 0
+        total_data = ""
+        while recvd_size < IDB_UPLOAD_SIZE:
+            pkt_type, data_chunk = client.get_packet()
+
+            assert pkt_type == PacketType.REQUEST.value
+            assert int(data_chunk.request_type) == RequestType.IDB_CHUNK.value
+            assert len(data_chunk.data.data) == IDB_UPLOAD_CHUNK_SIZE
+
+            total_data += data_chunk.data.data
+            recvd_size += len(data_chunk.data.data)
+
+        os.remove(dummy_idb_path)
+
+        assert len(total_data) == IDB_UPLOAD_SIZE
+        assert hashlib.sha1(dummy_idb_data).digest() == hashlib.sha1(total_data).digest()
