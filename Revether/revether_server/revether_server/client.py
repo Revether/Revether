@@ -70,7 +70,7 @@ class Client(object):
         self.idb_hash = idb_hash
 
     def send_pkt(self, pkt):
-        self.__sock.send(pkt)
+        self.__sock.sendall(pkt)
 
     def add_job(self, client_job):
         # Check that the passed job is valid
