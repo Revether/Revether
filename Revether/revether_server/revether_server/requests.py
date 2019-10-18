@@ -60,7 +60,7 @@ class Requests(object):
 
         # Adds the upload job to the server
         client.add_job(uploader.Uploader(
-            self.__logger, client.socket, os.path.join(self.__idbs_path, idb_name), client))
+            self.__logger, client, os.path.join(self.__idbs_path, idb_name)))
 
     def __handle_get_all_idbs(self, client):
         # TODO: Acutally create a list of all the idbs
