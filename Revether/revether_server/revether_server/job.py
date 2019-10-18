@@ -16,7 +16,7 @@ class Job(object):
         self.id = Job.JOB_NUMBER
         Job.JOB_NUMBER += 1
 
-        self.__logger = logger
+        self._logger = logger
         self.__exception = None
         self.__thread = None
 
@@ -32,6 +32,7 @@ class Job(object):
             self.return_value = self.job(*args, **kwargs)
         except Exception as e:
             self.__exception = e
+            self._logger.exception(e)
         finally:
             self.done_event.set()
 
@@ -52,13 +53,13 @@ class Job(object):
         assert self.__thread, "Job not started"
 
         if not self.done_event.is_set():
-            self.__logger.debug("Job not finished, but finish() called. Stopping job.")
+            self._logger.debug("Job not finished, but finish() called. Stopping job.")
             self.stop()
 
         self.__thread.join(timeout)
         self.__thread = None
 
-        if self.exception:
+        if self.__exception:
             raise self.__exception
 
         return self.return_value
@@ -73,6 +74,6 @@ class ClientJob(Job):
     Job that executes something that related to a client
     When the job fails (Exception is raised), the connection to the client is closed
     """
-    def __init(self, logger, client):
-        super(ClientJob, self).__init(logger)
+    def __init__(self, logger, client):
+        super(ClientJob, self).__init__(logger)
         self.client = client

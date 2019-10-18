@@ -246,14 +246,18 @@ class RevetherServer(object):
 
     def __finish_jobs(self, jobs):
         for current_job in jobs:
-            self.__logger.info("Job of type {} finished. Joining.".format(type(current_job)))
+            self.__logger.info("Job of type {} finished. Joining.".format(type(current_job).__name__))
             try:
                 current_job.finish()
+
+                if isinstance(current_job, job.ClientJob):
+                    current_job.client.jobs.remove(current_job)
             except Exception as e:
                 if isinstance(current_job, job.ClientJob):
                     self.__logger.info(
                         "Job #{} finished with an exception. The job is a client job, "
                         "closing connection with the client".format(current_job.id))
+                    self.__logger.exception(e)
                     self.__close_connection_with_client(current_job.client)
                 else:
                     self.__logger.error("Job #{} finished with an exception".format(current_job.id))
