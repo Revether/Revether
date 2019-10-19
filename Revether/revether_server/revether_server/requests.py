@@ -3,6 +3,7 @@ import functools
 
 import downloader
 import uploader
+import config
 
 from exceptions import FileHashMismatchError, FileSizeMismatchError, IDBNotFoundError
 from revether_common.net.packets import RequestType, create_request_packet

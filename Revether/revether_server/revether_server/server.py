@@ -221,9 +221,6 @@ class RevetherServer(object):
             "Got event from the client {}: {}".format(current_client.addr, data))
 
         # TODO: Save the event to the DB
-
-        print data
-        print wrap_event(data).encode('hex')
         self.__broadcast_events(current_client, [wrap_event(data)])
 
     def __handle_pkt_request(self, current_client, data):
@@ -245,6 +242,7 @@ class RevetherServer(object):
         except RevetherServerErrorWithCode as e:
             # Update the client about the failure
             current_client.send_pkt(create_request_packet(e.code))
+            self.__logger.warning("Error while handling client request: {}".format(e))
 
     def __finish_jobs(self, jobs):
         for current_job in jobs:
