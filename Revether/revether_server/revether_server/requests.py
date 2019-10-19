@@ -35,11 +35,7 @@ def validate_downloader(func, exists=True):
 class Requests(object):
     def __init__(self, logger):
         self.__logger = logger
-
-        # TODO: Make the path and name configurable
-        # TODO: We need a global config for the server.
-        # TODO: And functions that do it auto: get_idbs_dir and stuff
-        self.__idbs_path = "/mnt/c/Revether/idbs/"
+        self.__idbs_path = config.Configuration.get_idbs_dir()
 
         self.__requests_handlers = {
             RequestType.UPLOAD_IDB_START.value: self.__handle_upload_idb_start,
@@ -82,8 +78,7 @@ class Requests(object):
             "Client {} sent an upload request, starting the upload of file {}, size {}".format(
                 client.addr, idb_name, idb_size))
 
-        # TODO: Make the path and name configurable
-        local_file_path = self.__idbs_path + "{}_{}".format(idb_name, idb_hash.encode('hex'))
+        local_file_path = self.__idbs_path + "{}".format(idb_name)
         client.downloader = downloader.Downloader(self.__logger, local_file_path, idb_name, idb_hash, idb_size)
 
     # @validate_downloader()
