@@ -45,6 +45,8 @@ class RequestType(enum.Enum):
     GET_ALL_IDBS = 7
     GET_ALL_IDBS_RESPONSE = 8
 
+    DOWNLOAD_IDB_FILE_NOT_FOUND = 9
+
 
 class DictAdapter(construct.Adapter):
     def _decode(self, obj, context, path):

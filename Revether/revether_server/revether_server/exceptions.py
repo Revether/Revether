@@ -14,3 +14,7 @@ class FileHashMismatchError(RevetherServerErrorWithCode):
 
 class FileSizeMismatchError(RevetherServerErrorWithCode):
     pass
+
+
+class IDBNotFoundError(RevetherServerErrorWithCode):
+    pass

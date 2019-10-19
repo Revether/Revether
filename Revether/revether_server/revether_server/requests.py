@@ -4,7 +4,7 @@ import functools
 import downloader
 import uploader
 
-from exceptions import FileHashMismatchError, FileSizeMismatchError
+from exceptions import FileHashMismatchError, FileSizeMismatchError, IDBNotFoundError
 from revether_common.net.packets import RequestType, create_request_packet
 
 
@@ -57,6 +57,11 @@ class Requests(object):
 
     def __handle_download_idb_start(self, client, idb_name):
         # TODO: Check the idb_name exists in the idb db
+        if not os.path.exists(os.path.join(self.__idbs_path, idb_name)):
+            raise IDBNotFoundError(
+                "Client requested an IDB that does not exist: {}".format(idb_name),
+                RequestType.DOWNLOAD_IDB_FILE_NOT_FOUND.value
+            )
 
         # Adds the upload job to the server
         client.add_job(uploader.Uploader(
