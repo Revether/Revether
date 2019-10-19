@@ -6,6 +6,7 @@ import socket
 import io
 
 from revether_server.client import Client
+from revether_server.config import Configuration
 from revether_common.net.packets import (
     create_connection_packet, create_event_packet, EventType, PacketType,
     create_request_packet, RequestType)
@@ -93,8 +94,7 @@ def test_server_upload_idb(revether_server):
             RequestType.IDB_END.value
         ))
 
-        # TODO: see requests.py:38 and 77
-        file_name = "/mnt/c/Revether/idbs/{}_{}".format(DUMMY_IDB_NAME, send_hash.encode('hex'))
+        file_name = os.path.join(Configuration.get_idbs_dir(), DUMMY_IDB_NAME)
         wait_for(lambda: os.path.isfile(file_name), 5)
 
         with open(file_name, 'rb') as f:
@@ -113,7 +113,7 @@ def test_server_download_idb(revether_server):
         with open("/dev/urandom", 'rb') as f:
             dummy_idb_data = f.read(IDB_UPLOAD_SIZE)
 
-        dummy_idb_path = "/mnt/c/Revether/idbs/{}".format(DUMMY_IDB_NAME)
+        dummy_idb_path = os.path.join(Configuration.get_idbs_dir(), DUMMY_IDB_NAME)
         with open(dummy_idb_path, 'wb') as f:
             f.write(dummy_idb_data)
 
