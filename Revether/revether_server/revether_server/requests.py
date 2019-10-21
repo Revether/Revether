@@ -78,7 +78,7 @@ class Requests(object):
             "Client {} sent an upload request, starting the upload of file {}, size {}".format(
                 client.addr, idb_name, idb_size))
 
-        local_file_path = self.__idbs_path + "{}".format(idb_name)
+        local_file_path = os.path.join(self.__idbs_path, idb_name)
         client.downloader = downloader.Downloader(self.__logger, local_file_path, idb_name, idb_hash, idb_size)
 
     # @validate_downloader()
