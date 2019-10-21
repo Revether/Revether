@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import qApp, QMainWindow
 
-from ui.save import SaveMenuAction, SaveMenuActionHandler
+from save import SaveMenuAction, SaveMenuActionHandler
 from status_widget import StatusWidget
 
 

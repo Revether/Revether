@@ -11,7 +11,7 @@ class SocketEvent(QEvent):
         for instance, when an incoming packet has arrived
     """
 
-    EVENT_TYPE = QEvent.Type(QEvent.    EventType())
+    EVENT_TYPE = QEvent.Type(QEvent.registerEventType())
 
     def __init__(self):
         super(SocketEvent, self).__init__(SocketEvent.EVENT_TYPE)
